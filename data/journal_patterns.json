@@ -1,0 +1,144 @@
+{
+  "journal_to_prefix": {
+    "nature": "10.1038",
+    "nature medicine": "10.1038",
+    "nature communications": "10.1038",
+    "nature biotechnology": "10.1038",
+    "nature genetics": "10.1038",
+    "nature methods": "10.1038",
+    "nature reviews": "10.1038",
+    "scientific reports": "10.1038",
+    "npj digital medicine": "10.1038",
+
+    "new england journal of medicine": "10.1056",
+    "nejm": "10.1056",
+    "n engl j med": "10.1056",
+
+    "jama": "10.1001",
+    "jama internal medicine": "10.1001",
+    "jama network open": "10.1001",
+    "jama oncology": "10.1001",
+    "jama cardiology": "10.1001",
+    "jama neurology": "10.1001",
+    "jama pediatrics": "10.1001",
+    "jama surgery": "10.1001",
+    "jama dermatology": "10.1001",
+    "jama psychiatry": "10.1001",
+    "jama ophthalmology": "10.1001",
+
+    "lancet": "10.1016",
+    "the lancet": "10.1016",
+    "lancet oncology": "10.1016",
+    "lancet digital health": "10.1016",
+    "lancet neurology": "10.1016",
+    "lancet psychiatry": "10.1016",
+    "lancet respiratory medicine": "10.1016",
+    "lancet infectious diseases": "10.1016",
+    "lancet gastroenterology": "10.1016",
+
+    "bmj": "10.1136",
+    "british medical journal": "10.1136",
+    "gut": "10.1136",
+    "heart": "10.1136",
+    "thorax": "10.1136",
+    "annals of rheumatic diseases": "10.1136",
+    "bmj open": "10.1136",
+
+    "science": "10.1126",
+    "science translational medicine": "10.1126",
+    "science advances": "10.1126",
+
+    "plos medicine": "10.1371",
+    "plos one": "10.1371",
+    "plos biology": "10.1371",
+    "plos computational biology": "10.1371",
+
+    "cell": "10.1016",
+    "cell reports": "10.1016",
+    "cell metabolism": "10.1016",
+    "neuron": "10.1016",
+    "immunity": "10.1016",
+
+    "circulation": "10.1161",
+    "circulation research": "10.1161",
+    "stroke": "10.1161",
+    "hypertension": "10.1161",
+    "arteriosclerosis thrombosis": "10.1161",
+
+    "radiology": "10.1148",
+    "radiographics": "10.1148",
+
+    "neurology": "10.1212",
+
+    "pediatrics": "10.1542",
+
+    "journal of clinical investigation": "10.1172",
+    "jci": "10.1172",
+    "jci insight": "10.1172",
+
+    "annals of internal medicine": "10.7326",
+    "ann intern med": "10.7326",
+
+    "gastroenterology": "10.1053",
+
+    "hepatology": "10.1002",
+
+    "blood": "10.1182",
+
+    "journal of clinical oncology": "10.1200",
+    "jco": "10.1200",
+
+    "cancer research": "10.1158",
+    "clinical cancer research": "10.1158",
+
+    "american journal of respiratory": "10.1164",
+    "ajrccm": "10.1164",
+
+    "european respiratory journal": "10.1183",
+    "erj": "10.1183",
+
+    "mayo clinic proceedings": "10.4065",
+
+    "annals of surgery": "10.1097",
+    "journal of trauma": "10.1097",
+
+    "ca cancer journal": "10.3322",
+    "ca cancer j clin": "10.3322",
+
+    "the oncologist": "10.1634",
+
+    "jamia": "10.1197",
+    "journal of the american medical informatics association": "10.1197",
+
+    "jmir": "10.2196",
+    "journal of medical internet research": "10.2196",
+    "jmir medical informatics": "10.2196",
+
+    "elife": "10.7554",
+
+    "frontiers": "10.3389",
+    "frontiers in medicine": "10.3389",
+
+    "pnas": "10.1073",
+    "proceedings of the national academy": "10.1073",
+
+    "biorxiv": "10.1101",
+    "medrxiv": "10.1101",
+
+    "arxiv": "10.48550"
+  },
+
+  "abbreviation_expansions": {
+    "nejm": "New England Journal of Medicine",
+    "jama": "Journal of the American Medical Association",
+    "bmj": "British Medical Journal",
+    "jco": "Journal of Clinical Oncology",
+    "jci": "Journal of Clinical Investigation",
+    "ajrccm": "American Journal of Respiratory and Critical Care Medicine",
+    "erj": "European Respiratory Journal",
+    "jamia": "Journal of the American Medical Informatics Association",
+    "jmir": "Journal of Medical Internet Research",
+    "pnas": "Proceedings of the National Academy of Sciences",
+    "plos": "Public Library of Science"
+  }
+}
