@@ -26,3 +26,10 @@ Thumbs.db
 .pytest_cache/
 htmlcov/
 .coverage
+
+# Report build artifacts
+reports/*_files/
+reports/*.html
+
+# Run outputs
+scripts/safety_report.*

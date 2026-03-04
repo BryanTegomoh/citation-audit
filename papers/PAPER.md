@@ -6,8 +6,6 @@
 
 **Word Count:** 10,500 (excluding references and supplementary materials)
 
-**Target Journal:** Nature Medicine Methods / JAMIA / Journal of Medical Internet Research
-
 **Version:** 3.3 (February 24, 2026)
 
 ---
@@ -1537,7 +1535,7 @@ This study analyzed citation metadata and publicly available academic content. N
 
 ## 11. Acknowledgments
 
-The verification methodology was developed using Claude (Anthropic) for tool execution. The author thanks the AI safety research community for discussions on LLM hallucination detection.
+The author thanks the CrossRef and DOI Foundation teams for maintaining the open APIs that make automated citation verification possible.
 
 ---
 

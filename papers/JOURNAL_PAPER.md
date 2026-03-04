@@ -2,9 +2,9 @@
 
 **Bryan Tegomoh, MD, MPH¹**
 
-¹Department of Epidemiology, [Institution]
+¹Department of Epidemiology, University of California, Berkeley
 
-*Correspondence: [email]*
+*Correspondence: bryan.tegomoh@gmail.com*
 
 ---
 
@@ -215,7 +215,7 @@ This study analyzed publicly available citations in a publicly accessible handbo
 
 ### 2.8 Data and Code Availability
 
-All code, data, and documentation are available at: [GitHub repository to be added upon publication]. The toolkit is released under MIT license for unrestricted use.
+All code, data, and documentation are available at: [https://github.com/BryanTegomoh/citation-audit](https://github.com/BryanTegomoh/citation-audit). The toolkit is released under MIT license for unrestricted use.
 
 ---
 
@@ -618,7 +618,7 @@ The author declares no competing interests.
 
 **Supplementary Table S1.** Complete list of 21 citation errors with pattern classification, original citations, corrected citations, and resolution methods. [Available in online repository]
 
-**Supplementary File S1.** Citation Verification Toolkit complete source code (MIT License). [Available at: https://github.com/BryanTegomoh/citation-hallucination-audit]
+**Supplementary File S1.** Citation Verification Toolkit complete source code (MIT License). [Available at: https://github.com/BryanTegomoh/citation-audit]
 
 **Supplementary File S2.** Complete verification report for all 838 citations with automated flagging results and manual verification outcomes. [Available in online repository]
 

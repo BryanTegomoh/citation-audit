@@ -1,10 +1,10 @@
-# Citation Hallucination Audit - CLI Toolkit
+# Citation Audit - CLI Toolkit
 
-Detect and fix hallucinated citations in academic and medical literature. This toolkit helps researchers, writers, and developers identify citations where AI or human error has produced DOIs that don't exist, point to the wrong papers, or have incorrect metadata.
+Detect and fix citation errors in academic and medical literature. This toolkit helps researchers, writers, and developers identify citations where DOIs don't exist, point to the wrong papers, or have incorrect metadata.
 
 ## The Problem
 
-AI-generated content (and human writing) often contains "hallucinated" citations:
+Academic writing frequently contains citation errors:
 
 - **Valid DOI, Wrong Paper**: DOI exists but resolves to a completely different paper
 - **Non-Existent DOI**: DOI follows correct syntax but returns 404
@@ -18,7 +18,7 @@ These errors undermine credibility and can propagate misinformation. This toolki
 
 ```bash
 # Clone or copy this folder
-cd citation-hallucination-audit
+cd citation-audit
 
 # Install dependencies
 pip install -r requirements.txt
@@ -108,7 +108,7 @@ This toolkit uses only free, unauthenticated APIs:
 ## Project Structure
 
 ```
-citation-hallucination-audit/
+citation-audit/
 ├── README.md                 # Project overview
 ├── PAPER.md                  # Technical report (16-category taxonomy)
 ├── JOURNAL_PAPER.md          # Formal journal paper (5 patterns)
@@ -148,7 +148,7 @@ citation-hallucination-audit/
 ## Use Cases
 
 - **Before publishing**: Verify all citations in a manuscript
-- **AI content review**: Check AI-generated literature reviews for hallucinations
+- **Content review**: Check literature reviews for citation errors
 - **Quality assurance**: Automated CI/CD checks for documentation
 - **Research integrity**: Audit existing publications for citation accuracy
 

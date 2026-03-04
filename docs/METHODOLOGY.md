@@ -1427,13 +1427,13 @@ The five-phase verification pipeline has been implemented as automated hooks tha
 - Statistics without adjacent citations (regex)
 - Duplicate URLs in same edit
 
-**Output:** Non-blocking warnings displayed in Claude Code
+**Output:** Non-blocking warnings displayed in the editor
 
 ### Tier 2: SessionEnd Full Pipeline
 
-**File:** `~/.claude/hooks/verify-citations-session.py`
+**File:** `hooks/verify-citations-session.py`
 
-**When:** End of each Claude Code session (automatic)
+**When:** End of each editing session (automatic)
 
 **Phases Executed:**
 - Phase 0: DOI existence validation (CrossRef API)

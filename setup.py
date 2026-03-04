@@ -1,4 +1,4 @@
-"""Setup script for Citation Hallucination Audit."""
+"""Setup script for Citation Audit."""
 
 from setuptools import setup, find_packages
 
@@ -13,13 +13,13 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     ]
 
 setup(
-    name="citation-hallucination-audit",
+    name="citation-audit",
     version="1.0.0",
     author="Bryan Tegomoh",
-    description="Detect and fix hallucinated citations in academic literature",
+    description="Detect and fix citation errors in academic literature",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/BryanTegomoh/citation-hallucination-audit",
+    url="https://github.com/BryanTegomoh/citation-audit",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[

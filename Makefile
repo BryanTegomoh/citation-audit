@@ -1,4 +1,4 @@
-# Citation Hallucination Audit - Common Commands
+# Citation Audit - Common Commands
 
 .PHONY: install test verify check clean help
 
@@ -39,7 +39,7 @@ clean:
 
 # Show help
 help:
-	@echo "Citation Hallucination Audit"
+	@echo "Citation Audit"
 	@echo ""
 	@echo "Commands:"
 	@echo "  make install       Install dependencies"

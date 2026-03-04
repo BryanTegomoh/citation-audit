@@ -1,13 +1,13 @@
-# Citation Hallucination Audit - Complete Build Summary
+# Citation Audit - Complete Build Summary
 
 ## What Was Built
 
-A comprehensive, standalone toolkit for detecting and fixing hallucinated citations in academic and medical literature. Based on real-world experience auditing 800+ DOIs and finding patterns of citation errors.
+A standalone toolkit for detecting and fixing citation errors in academic and medical literature. Based on real-world experience auditing 800+ DOIs and finding patterns of citation errors.
 
 ## Complete File Structure
 
 ```
-citation-hallucination-audit/
+citation-audit/
 ├── README.md                          ✓ Complete quick start guide
 ├── CONTRIBUTING.md                    ✓ Contribution guidelines
 ├── requirements.txt                   ✓ Python dependencies
@@ -198,7 +198,7 @@ Mapping of journal names to expected prefixes for validation.
 
 ### Quick Setup
 ```bash
-cd citation-hallucination-audit
+cd citation-audit
 pip install -r requirements.txt
 pip install -e .  # Optional: install as package
 ```

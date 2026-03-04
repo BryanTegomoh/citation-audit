@@ -1,10 +1,10 @@
-# Contributing to Citation Hallucination Audit
+# Contributing to Citation Audit
 
 Thank you for your interest in improving citation verification for academic literature.
 
 ## Ways to Contribute
 
-### Report New Hallucination Patterns
+### Report New Error Patterns
 
 If you discover a new type of citation error not covered in our documentation:
 
@@ -52,7 +52,7 @@ To add a new format:
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd citation-hallucination-audit
+cd citation-audit
 
 # Create virtual environment
 python -m venv venv

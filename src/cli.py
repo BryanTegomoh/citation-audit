@@ -37,7 +37,7 @@ if HAS_CLI_DEPS:
     @click.group()
     @click.version_option(version="1.0.0")
     def main():
-        """Citation Verification Toolkit - Detect hallucinated citations."""
+        """Citation Verification Toolkit - Detect citation errors."""
         pass
 
     @main.command()
