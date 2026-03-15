@@ -1,6 +1,6 @@
 # Citation Hallucination Patterns
 
-This document describes the six main patterns of citation hallucination found in AI-generated and human-written academic content. Understanding these patterns helps you recognize and fix citation errors.
+This document describes ten patterns of citation hallucination and metadata error found in AI-generated and human-written academic content. Understanding these patterns helps you recognize and fix citation errors.
 
 ## Overview
 
@@ -14,6 +14,10 @@ Citation hallucinations occur when the metadata in a citation (author names, yea
 | Completely Fabricated | Critical | Easy-Medium | Occasional |
 | Wrong Publisher Prefix | Medium | Easy | Occasional |
 | Memory-Constructed URL | Critical | Easy (post-hoc) | Common for non-DOI links |
+| Misattributed Authorship | Medium | Medium | Common |
+| Truncated/Corrupted Metadata | Low-Medium | Easy | Very Common |
+| Preprint Cited as Published | Medium | Medium | Common |
+| Edition/Version Confusion | Medium | Hard | Occasional |
 
 ## Pattern 1: Valid DOI, Wrong Paper
 
@@ -220,6 +224,156 @@ Actual location: https://bidenwhitehouse.archives.gov/briefing-room/statements-r
 
 ---
 
+## Pattern 7: Misattributed Authorship
+
+**What it looks like**: The citation uses a city, publisher, or organization name where individual author names should appear, or vice versa.
+
+**Example**:
+```
+Citation text: "Geneva: World Health Organization, 2021"
+Problem: "Geneva" is treated as the author in the in-text citation
+Correct: WHO is the corporate author; "Geneva" is the place of publication
+```
+
+Another variant:
+```
+Citation text: "WHO, 2021"
+Problem: No individual authors listed despite the document having named authors
+Correct: "Smith J, Jones A, et al. [Title]. Geneva: World Health Organization; 2021"
+```
+
+**Why it happens**:
+- Confusion between publisher location and authorship field in reference managers
+- Corporate authorship conventions vary by citation style (APA, Vancouver, AMA)
+- AI models confuse bibliographic fields (city, publisher, author) when generating citations
+- Some organizational reports genuinely use corporate authorship; others have named individual authors
+
+**Detection method**:
+1. Check if the "author" field contains a city name (Geneva, Washington, London)
+2. Look up the actual document to determine if individual authors are listed
+3. Verify corporate vs. individual authorship against the title page
+
+**How to fix**:
+1. Check the source document's title page for named authors
+2. If individual authors exist, cite them (with corporate author as publisher)
+3. If corporate authorship is correct, remove the city from the author field
+
+**Risk level**: MEDIUM. The paper exists and is correctly identified, but misattribution can make the reference list look careless and complicates lookup by other researchers.
+
+---
+
+## Pattern 8: Truncated or Corrupted Metadata
+
+**What it looks like**: Journal names, titles, or other metadata fields are cut short, misspelled, or garbled.
+
+**Example**:
+```
+Citation text: "Lancet Digit"
+Correct: "The Lancet Digital Health"
+
+Citation text: "J Med Internet"
+Correct: "Journal of Medical Internet Research"
+```
+
+**Why it happens**:
+- Reference manager export errors (field length limits)
+- Copy-paste from databases that abbreviate journal names
+- AI generating partial journal names from training data patterns
+- Character encoding issues corrupting special characters in titles
+- Manual transcription cutting off long journal names
+
+**Detection method**:
+1. Compare journal names against the NLM Catalog or ISSN database
+2. Check for unusually short journal name strings (under 15 characters for multi-word journals)
+3. Look for missing articles ("Lancet" vs. "The Lancet"), missing subtitles, or trailing fragments
+
+**How to fix**:
+1. Look up the full journal name in PubMed/NLM Catalog
+2. Use the standard abbreviation (NLM style) or full name consistently
+3. Verify all metadata fields (volume, issue, pages) are complete
+
+**Risk level**: LOW-MEDIUM. The reference is identifiable but looks unprofessional. In automated verification pipelines, truncated names can cause false negatives (journal name doesn't match known databases).
+
+---
+
+## Pattern 9: Preprint Cited as Published
+
+**What it looks like**: A preprint (arXiv, bioRxiv, medRxiv, SSRN) is cited as if it were a peer-reviewed published article, without any indication of its preprint status.
+
+**Example**:
+```
+Citation text: "Zhang et al., Nature Medicine, 2023"
+Actual status: Posted on medRxiv, never published in Nature Medicine
+```
+
+Or:
+```
+Citation text: "Park et al., 2024. Journal of Clinical Investigation"
+Actual status: Published in JCI, but was a medRxiv preprint when the citing manuscript was drafted.
+The preprint version had different conclusions than the published version.
+```
+
+**Why it happens**:
+- Authors cite preprints found during literature search without checking publication status
+- AI models don't distinguish between preprint and published versions in training data
+- Preprints sometimes have different findings than the final published version
+- Some preprints are never published (peer review identified fatal flaws)
+- Rapid-moving fields (COVID-19) have many preprints that were never peer-reviewed
+
+**Detection method**:
+1. Search for the paper title in PubMed (which indexes published articles, not preprints)
+2. If only found on preprint servers, it has not been peer-reviewed
+3. If found in both, compare the preprint and published versions for substantive differences
+4. Check the DOI prefix: 10.1101 (bioRxiv/medRxiv), 10.48550 (arXiv) indicate preprints
+
+**How to fix**:
+1. If a published version exists, update the citation to the published version
+2. If only a preprint exists, label it explicitly: "Author et al., 2023, preprint"
+3. Note if findings changed between preprint and publication
+4. Consider whether a preprint (unreviewed) is appropriate evidence for the claim being made
+
+**Risk level**: MEDIUM. Citing preprints as published inflates the apparent strength of evidence. In clinical contexts, this can be dangerous: a preprint with promising results might be cited to support a clinical recommendation, but the peer-reviewed version may have revealed methodological problems.
+
+---
+
+## Pattern 10: Edition or Version Confusion
+
+**What it looks like**: A guideline, framework, or living document is cited by the wrong edition, version, or year of publication, often confusing an older version with a more recent update.
+
+**Example**:
+```
+Citation text: "CONSORT Statement (Moher et al., 2001)"
+Problem: CONSORT 2010 is the current version (Schulz et al., 2010)
+The 2001 version is obsolete
+```
+
+Another variant:
+```
+Citation text: "PRISMA guidelines (Moher et al., 2009)"
+Problem: PRISMA 2020 is the current version (Page et al., 2021)
+Citing the 2009 version suggests the authors are unaware of the update
+```
+
+**Why it happens**:
+- AI training data includes citations to older versions that were more commonly cited historically
+- Authors copy citations from older papers without checking for updates
+- Some frameworks change lead authors between versions (CONSORT: Moher → Schulz; PRISMA: Moher → Page)
+- Living documents may have multiple versions without clear deprecation notices
+
+**Detection method**:
+1. Check the cited framework's official website for the current version
+2. Compare the year and lead author against the most recent edition
+3. Verify the DOI resolves to the version actually cited (not redirected to an update)
+
+**How to fix**:
+1. Identify the current version of the guideline or framework
+2. Update citation to reflect current edition with correct authors and year
+3. If citing the older version intentionally (e.g., historical comparison), state this explicitly
+
+**Risk level**: MEDIUM. Citing outdated guidelines suggests the authors are not current with the field. In regulatory or clinical contexts, applying an obsolete standard could have practical consequences.
+
+---
+
 ## Combined Pattern Detection
 
 The most reliable verification uses multiple checks together:
@@ -233,6 +387,10 @@ Check 2: Does prefix match journal? (Pattern 5)
 Check 3: Do authors/year match metadata? (Pattern 3)
 Check 4: Does title match claimed topic? (Pattern 1)
 Check 5: Does journal name exist? (Pattern 4)
+Check 6: Is the "author" actually an author, not a city or publisher? (Pattern 7)
+Check 7: Is the journal name complete and correctly spelled? (Pattern 8)
+Check 8: Is this the published version, or a preprint? (Pattern 9)
+Check 9: Is this the current edition/version? (Pattern 10)
 ```
 
 If multiple checks fail, the citation is likely Pattern 4 (completely fabricated).
