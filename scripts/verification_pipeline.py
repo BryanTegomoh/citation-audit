@@ -46,6 +46,7 @@ from doi_validator import DOIValidator, DOIStatus, DOIValidationResult
 from url_verifier import URLVerifier, URLStatus, URLVerificationResult
 from content_verifier import ContentVerifier, AlignmentStatus, ContentVerificationResult
 from metadata_verifier import MetadataVerifier, MetadataVerificationResult, MetadataField
+from rubric import CitationRubric, generate_rubric_report, generate_markdown_rubric_report
 
 
 class ErrorCategory(Enum):
@@ -126,6 +127,9 @@ class PipelineReport:
     duplicate_citations: int
     results: List[VerificationResult]
 
+    # Rubric scores (populated after pipeline run)
+    rubric_scores: List = field(default_factory=list)
+
     # Summary statistics
     verified_correct: int = 0
     total_errors: int = 0
@@ -160,7 +164,8 @@ class PipelineReport:
                     'unable_to_verify': self.unable_to_verify
                 }
             },
-            'results': [r.to_dict() for r in self.results]
+            'results': [r.to_dict() for r in self.results],
+            'rubric_scores': [s.to_dict() for s in self.rubric_scores] if self.rubric_scores else []
         }
 
 
@@ -436,6 +441,16 @@ class VerificationPipeline:
             elif r.error_category == ErrorCategory.UNABLE_TO_VERIFY:
                 report.unable_to_verify += 1
 
+        # Rubric scoring
+        print("\n[Rubric Scoring]")
+        rubric = CitationRubric()
+        report.rubric_scores = rubric.score_batch(results)
+        composites = [s.composite for s in report.rubric_scores]
+        if composites:
+            print(f"  Mean rubric score: {sum(composites)/len(composites):.2f}")
+            print(f"  Failing citations (< 0.5): {sum(1 for c in composites if c < 0.5)}")
+            print(f"  Grade A citations (>= 0.9): {sum(1 for c in composites if c >= 0.9)}")
+
         print(f"\n{'='*50}")
         print(f"VERIFICATION COMPLETE")
         print(f"{'='*50}")
@@ -601,6 +616,8 @@ Examples:
                         help='Phases to run: 0=DOI existence, 1=URL, 2=Content, 3=Metadata (default: all)')
     parser.add_argument('--markdown', action='store_true',
                         help='Also generate markdown report')
+    parser.add_argument('--rubric', action='store_true',
+                        help='Also generate rubric score reports')
 
     args = parser.parse_args()
 
@@ -622,6 +639,15 @@ Examples:
         md_path = args.output.replace('.json', '.md')
         generate_markdown_report(report, md_path)
         print(f"Markdown report exported to: {md_path}")
+
+    # Export rubric reports if requested
+    if args.rubric and report.rubric_scores:
+        rubric_json = args.output.replace('.json', '_rubric.json')
+        rubric_md = args.output.replace('.json', '_rubric.md')
+        generate_rubric_report(report.rubric_scores, rubric_json)
+        generate_markdown_rubric_report(report.rubric_scores, rubric_md)
+        print(f"Rubric JSON report exported to: {rubric_json}")
+        print(f"Rubric markdown report exported to: {rubric_md}")
 
 
 if __name__ == '__main__':

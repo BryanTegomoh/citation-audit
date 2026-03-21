@@ -54,8 +54,64 @@ python scripts/verification_pipeline.py ./content/ -o report.json
 # Include a human-readable report
 python scripts/verification_pipeline.py ./content/ -o report.json --markdown
 
+# Verify with rubric scoring (JSON + markdown rubric reports)
+python scripts/verification_pipeline.py ./content/ -o report.json --rubric
+
 # Verify a single file
 python scripts/verification_pipeline.py paper.md -o report.json
+```
+
+---
+
+## Rubric Scoring
+
+The pipeline includes a multi-dimensional rubric that scores each citation across nine dimensions instead of assigning a single error category. This enables severity-weighted prioritization and before/after comparison when fixes are applied.
+
+### Dimensions
+
+| Dimension | Weight | Description |
+|-----------|--------|-------------|
+| doi_existence | 0.10 | Does the DOI resolve in CrossRef? |
+| url_resolution | 0.10 | Does the URL return a valid page? |
+| topic_alignment | 0.10 | Does the paper's topic match the claim's domain? |
+| claim_support | 0.25 | Does the paper's conclusion support the specific claim? |
+| statistic_accuracy | 0.15 | Do cited numbers appear in the source? |
+| author_accuracy | 0.10 | Is the first author correct? |
+| year_accuracy | 0.05 | Is the publication year correct? |
+| journal_accuracy | 0.05 | Is the journal name correct? |
+| direction_of_effect | 0.10 | Does the paper's finding direction match the framing? |
+
+### Fix Validation
+
+When an LLM corrects a citation, the rubric scores before and after. The fix is accepted only if the composite improvement exceeds a minimum delta (default: 0.15). This prevents "fixes" that introduce new errors or produce negligible improvement.
+
+```python
+from rubric import CitationRubric
+
+rubric = CitationRubric()
+before = rubric.score(result_before_fix)
+after = rubric.score(result_after_fix)
+delta = rubric.compare(before, after)
+
+if delta.is_improvement(min_delta=0.15):
+    print(f"Fix accepted: {delta.composite_delta:+.2f}")
+else:
+    print(f"Fix rejected: delta {delta.composite_delta:+.2f} below threshold")
+```
+
+### Custom Weights
+
+Weights are configurable for different use cases. A clinical handbook might weight `statistic_accuracy` and `direction_of_effect` higher; a literature review might weight `author_accuracy` higher.
+
+```python
+from rubric import CitationRubric, Dimension
+
+weights = {dim: 0.05 for dim in Dimension}
+weights[Dimension.CLAIM_SUPPORT] = 0.40
+weights[Dimension.STATISTIC_ACCURACY] = 0.20
+# Weights must sum to 1.0
+
+rubric = CitationRubric(weights=weights)
 ```
 
 ---
@@ -72,6 +128,7 @@ citation-audit/
 |   |-- url_verifier.py             Phase 1: HTTP status checking
 |   |-- content_verifier.py         Phase 2: Content alignment
 |   |-- metadata_verifier.py        Phase 3: Author/year validation
+|   |-- rubric.py                   Multi-dimensional rubric scoring
 |
 |-- src/                      Installable Python package
 |   |-- extractors/                 BibTeX, markdown, plaintext parsers
