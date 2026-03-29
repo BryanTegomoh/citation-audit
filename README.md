@@ -12,6 +12,8 @@ Citations that look correct frequently are not. Standard verification (checking 
 
 This toolkit implements a five-phase verification pipeline to catch the full spectrum of citation errors, from fabricated DOIs to valid papers that do not support the attributed claims.
 
+It can also audit AI-generated medical coding output by checking whether suggested E/M, CPT, and ICD-10 codes are supported by the clinical transcript and structured documentation.
+
 ---
 
 ## The Five-Phase Pipeline
@@ -59,7 +61,34 @@ python scripts/verification_pipeline.py ./content/ -o report.json --rubric
 
 # Verify a single file
 python scripts/verification_pipeline.py paper.md -o report.json
+
+# Audit AI-generated medical coding for a sample visit transcript
+python scripts/coding_audit.py examples/coding_sample.json
 ```
+
+---
+
+## Coding Intelligence Integration
+
+OpenEvidence Coding Intelligence can generate E/M levels, CPT procedure codes, and ICD-10 diagnoses from visit transcripts. This repository is a complementary audit layer, not a competing coding engine: it reviews AI-generated codes for supportability and flags places where human review is still required.
+
+The coding audit module in [`src/coding_verifier.py`](src/coding_verifier.py) currently checks:
+
+- E/M assignments against structured MDM criteria using the 2-of-3 CMS framework
+- High-yield CPT conflicts against an embedded subset of CMS Correct Coding Initiative edits
+- ICD-10 specificity gaps, including unspecified codes when the transcript documents stage, linkage, or other added detail
+- Common upcoding and downcoding patterns, especially unsupported high-level office visits
+
+The runnable example in [`examples/coding_sample.json`](examples/coding_sample.json) shows the expected payload and audit output format, and [`scripts/coding_audit.py`](scripts/coding_audit.py) will emit the audit result as JSON for downstream review pipelines.
+
+Typical workflow:
+
+1. Generate transcript-derived codes with OpenEvidence Coding Intelligence.
+2. Serialize the transcript, coding output, and structured clinical context into JSON.
+3. Run `python scripts/coding_audit.py visit.json -o coding_audit.json`.
+4. Review flagged E/M, CPT, and ICD-10 findings before final claim submission.
+
+This is positioned for compliance auditing and QA. It does not replace certified coding review, payer-specific policy checks, or the full CMS CCI dataset.
 
 ---
 

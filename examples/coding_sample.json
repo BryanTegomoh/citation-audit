@@ -1,0 +1,152 @@
+{
+  "visit_id": "oe-ci-demo-001",
+  "encounter_type": "established_office",
+  "transcript": "Established patient follow-up for type 2 diabetes with chronic kidney disease stage 3a and hypertension. The patient is stable overall. We reviewed the CMP and hemoglobin A1c, continued metformin and lisinopril, and reinforced diet and home blood pressure logs. No acute symptoms, no hospitalization, and no intensive drug monitoring were discussed.",
+  "coding_output": {
+    "em_code": "99215",
+    "cpt_codes": [
+      {
+        "code": "99215",
+        "modifiers": [],
+        "description": "Office or other outpatient visit for the evaluation and management of an established patient"
+      },
+      {
+        "code": "93000",
+        "modifiers": [],
+        "description": "Electrocardiogram, routine ECG with at least 12 leads; with interpretation and report"
+      },
+      {
+        "code": "93010",
+        "modifiers": [],
+        "description": "Electrocardiogram report only"
+      }
+    ],
+    "icd10_codes": [
+      {
+        "code": "E11.9",
+        "description": "Type 2 diabetes mellitus without complications"
+      },
+      {
+        "code": "N18.9",
+        "description": "Chronic kidney disease, unspecified"
+      },
+      {
+        "code": "I10",
+        "description": "Essential hypertension"
+      }
+    ]
+  },
+  "clinical_context": {
+    "mdm": {
+      "problems": "moderate",
+      "data": "low",
+      "risk": "moderate"
+    },
+    "diagnoses_documented": [
+      {
+        "label": "Type 2 diabetes mellitus with diabetic chronic kidney disease",
+        "keywords": [
+          "type 2 diabetes",
+          "chronic kidney disease"
+        ],
+        "expected_icd10": [
+          "E11.22"
+        ]
+      },
+      {
+        "label": "Chronic kidney disease stage 3a",
+        "keywords": [
+          "stage 3a"
+        ],
+        "expected_icd10": [
+          "N18.31"
+        ]
+      }
+    ],
+    "procedures_documented": []
+  },
+  "audit_output": {
+    "visit_id": "oe-ci-demo-001",
+    "status": "fail",
+    "assigned_em_code": "99215",
+    "recommended_em_code": "99214",
+    "supported_mdm_level": "moderate",
+    "issue_counts": {
+      "info": 0,
+      "warning": 4,
+      "error": 6
+    },
+    "issues": [
+      {
+        "category": "upcoding_downcoding",
+        "severity": "error",
+        "message": "Assigned E/M code 99215 suggests upcoding versus the documented MDM.",
+        "details": "Encounter type: established_office; documented MDM supports moderate complexity and code 99214.",
+        "suggested_fix": "Use 99214 unless additional documentation supports 99215."
+      },
+      {
+        "category": "em_level",
+        "severity": "warning",
+        "message": "High-complexity established patient coding lacks obvious high-risk language in the transcript.",
+        "details": "99215 usually needs high MDM or clearly documented high-risk management.",
+        "suggested_fix": "Confirm the transcript and assessment document high-risk decision making."
+      },
+      {
+        "category": "cci_rules",
+        "severity": "error",
+        "message": "ECG tracing/report and ECG interpretation were billed together.",
+        "details": "CMS CCI typically allows one component or the global service, not both.",
+        "suggested_fix": "Bill 93000 alone for the global ECG service, or split technical/professional components correctly."
+      },
+      {
+        "category": "cci_rules",
+        "severity": "warning",
+        "message": "E/M service was billed with a same-day procedure without modifier 25.",
+        "details": "A separately identifiable evaluation and management service should be documented when modifier 25 is used.",
+        "suggested_fix": "Add modifier 25 only if the note supports a distinct E/M service; otherwise remove the E/M code."
+      },
+      {
+        "category": "icd10_specificity",
+        "severity": "error",
+        "message": "Assigned ICD-10 codes do not capture the documented specificity for Type 2 diabetes mellitus with diabetic chronic kidney disease.",
+        "details": "Expected one of: E11.22; found related codes: E11.9, N18.9.",
+        "suggested_fix": "Replace or supplement with E11.22 if documentation supports it."
+      },
+      {
+        "category": "icd10_specificity",
+        "severity": "error",
+        "message": "Assigned ICD-10 codes do not capture the documented specificity for Chronic kidney disease stage 3a.",
+        "details": "Expected one of: N18.31; found related codes: E11.9, N18.9.",
+        "suggested_fix": "Replace or supplement with N18.31 if documentation supports it."
+      },
+      {
+        "category": "icd10_specificity",
+        "severity": "warning",
+        "message": "ICD-10 code E11.9 is unspecified.",
+        "details": "Unspecified diagnosis codes are higher risk when the transcript documents laterality, stage, type, or linkage.",
+        "suggested_fix": "Use the most specific diagnosis supported by the note."
+      },
+      {
+        "category": "icd10_specificity",
+        "severity": "warning",
+        "message": "ICD-10 code N18.9 is unspecified.",
+        "details": "Unspecified diagnosis codes are higher risk when the transcript documents laterality, stage, type, or linkage.",
+        "suggested_fix": "Use the most specific diagnosis supported by the note."
+      },
+      {
+        "category": "icd10_accuracy",
+        "severity": "error",
+        "message": "Transcript documents CKD stage 3a but N18.31 was not assigned.",
+        "details": null,
+        "suggested_fix": "Use N18.31 if the final assessment confirms CKD stage 3a."
+      },
+      {
+        "category": "icd10_accuracy",
+        "severity": "error",
+        "message": "Transcript links diabetes with chronic kidney disease without using the combination code E11.22.",
+        "details": null,
+        "suggested_fix": "Use E11.22 when the clinician documents diabetic chronic kidney disease."
+      }
+    ]
+  }
+}
