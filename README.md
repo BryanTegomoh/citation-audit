@@ -10,7 +10,7 @@
 
 Citations that look correct frequently are not. Standard verification (checking whether a URL resolves) catches approximately 21% of errors. The remaining 79% require reading the cited paper and confirming it supports the specific claim. This finding is consistent with SourceCheckup (Nature Communications 2025), which found 50-90% of LLM-generated medical citations are not fully supported by their sources.
 
-This toolkit implements a five-phase verification pipeline with 42 documented failure modes across six categories, covering everything from fabricated DOIs to scope extrapolation, retracted paper citation, and evidence strength inflation.
+This toolkit implements a five-phase verification pipeline with 56 documented failure modes across six categories, covering everything from fabricated DOIs to scope extrapolation, retracted paper citation, and evidence strength inflation.
 
 It can also audit AI-generated medical coding output by checking whether suggested E/M, CPT, and ICD-10 codes are supported by the clinical transcript and structured documentation.
 
@@ -31,7 +31,7 @@ Phase 3: Metadata Accuracy    Author, year, journal, retraction, funding
 Phase 4: Correction           Fix identification and replacement search
 ```
 
-### Error Taxonomy (42 Failure Modes)
+### Error Taxonomy (56 Failure Modes)
 
 **Phase 0-1: Structural**
 
@@ -55,6 +55,11 @@ Phase 4: Correction           Fix identification and replacement search
 | FABRICATED_STATISTIC | Numbers cited without verifiable source |
 | INVERTED_STATISTICS | Correct numbers assigned to wrong labels |
 | CHIMERA_CITATION | Real components assembled into fabricated paper |
+| REVERSE_OVERLOADING | Multiple citations for a claim none individually support |
+| TABLE_FIGURE_MISREAD | Correct paper, number extracted from wrong row/subgroup |
+| SECONDARY_SOURCE_ATTRIBUTION | Paper A cited for claim sourced from Paper B |
+| WITHDRAWN_CORRECTED_PAPER | Erratum changes a cited value; original version cited |
+| SELF_REFERENTIAL_LOOP | RAG system cites its own prior generated output |
 
 **Phase 2: Semantic Misrepresentation**
 
@@ -77,6 +82,12 @@ Phase 4: Correction           Fix identification and replacement search
 | DECORATION_CITATION | Citation appears but adds no evidentiary value |
 | SECONDARY_SOURCE_OVERRELIANCE | Grand Rounds cited when original guideline should be |
 | AMBIGUITY | Phrasing creates confusion between distinct concepts |
+| PREPRINT_AS_PUBLISHED | Preprint cited without qualifier; published version has different conclusions |
+| DOSAGE_UNIT_TRANSPOSITION | Correct drug, wrong dose, unit, frequency, or route |
+| CONFIDENCE_INTERVAL_FABRICATION | Generated CI/p-value/OR not present in cited source |
+| GHOST_UPDATE | "As of 2024" framing applied to a citation with no actual update |
+| OFF_LABEL_INDICATION_CONFLATION | Paper studied intervention for Indication A, cited for Indication B |
+| SURVIVAL_BIAS | Positive trials cited; null results and replication failures omitted |
 
 **Phase 3: Metadata**
 
@@ -94,6 +105,7 @@ Phase 4: Correction           Fix identification and replacement search
 | RETRACTED_PAPER | Paper has been formally retracted |
 | SUPERSEDED_EVIDENCE | Guideline replaced by newer version |
 | POPULARITY_BIAS | Most-cited paper selected over most-relevant |
+| REGULATORY_STATUS_MISMATCH | Investigational intervention cited as approved, or wrong jurisdiction |
 
 **Systemic**
 
