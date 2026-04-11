@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 """
-Citation Verification Pipeline
+Citation Verification Pipeline (v4.0)
 
-A domain-agnostic tool for verifying academic citations in any text document.
-This pipeline systematically validates citations through five phases, detecting
-errors ranging from broken URLs to fabricated references.
+Systematic verification of academic citations across 42 documented failure modes.
+Detects errors from fabricated DOIs to semantic misrepresentation, retracted papers,
+scope extrapolation, and evidence strength inflation.
 
-Part of the Five-Phase Citation Verification Pipeline.
-See METHODOLOGY.md for complete documentation.
+Architecture:
+  Phase 0: DOI Existence Validation    CrossRef registry lookup
+  Phase 1: URL Resolution Testing      HTTP status and redirect chain analysis
+  Phase 2: Content-Claim Alignment     Semantic verification against source text
+  Phase 3: Metadata Accuracy           Author, year, journal, retraction status
+  Phase 4: Correction Analysis         Fix identification and replacement search
 
-Phases:
-  0: DOI Existence Validation - Check if DOI exists in CrossRef registry
-  1: URL Resolution Testing - Check if URL resolves (HTTP status)
-  2: Content-Claim Alignment - Verify paper supports the claim made
-  3: Metadata Accuracy - Verify author, year, journal are correct
-  4: Correction Analysis - Identify fixes needed (analysis only)
+Error taxonomy spans six categories:
+  - Structural (DOI/URL)               Phases 0-1
+  - Content alignment                  Phase 2
+  - Semantic misrepresentation          Phase 2 (higher-order)
+  - Metadata                           Phase 3
+  - Source selection                    Cross-phase
+  - Systemic                           Cross-ecosystem
 
 Usage:
-    # Verify all markdown files in a directory
     python verification_pipeline.py ./content/ -o report.json
-
-    # Verify with markdown report
     python verification_pipeline.py ./content/ -o report.json --markdown
-
-    # Run specific phases only
     python verification_pipeline.py ./content/ --phases 0 1
 
-Supported file types: .md, .qmd, .rst, .txt (with markdown citations)
+Supported file types: .md, .qmd, .rst, .txt
 """
 
 import argparse
@@ -50,20 +50,74 @@ from rubric import CitationRubric, generate_rubric_report, generate_markdown_rub
 
 
 class ErrorCategory(Enum):
-    """Standardized error categories for the final report."""
+    """
+    Standardized error categories spanning 42 documented failure modes.
+
+    Categories are organized by verification phase and failure type:
+      - Phase 0-1: Structural failures (DOI/URL resolution)
+      - Phase 2: Content-level failures (claim-source alignment)
+      - Phase 3: Metadata failures (author, year, journal)
+      - Semantic: Higher-order reasoning failures
+      - Systemic: Cross-ecosystem and infrastructure failures
+    """
+    # Phase 0-1: Structural
     BROKEN_URL = "broken_url"
-    FABRICATED_DOI = "fabricated_doi"  # NEW: DOI format valid but doesn't exist
+    FABRICATED_DOI = "fabricated_doi"
+    FABRICATED_REPOSITORY = "fabricated_repository"
+    GENERIC_URL = "generic_url"
+
+    # Phase 2: Content alignment
     WRONG_PAPER = "wrong_paper"
+    CLAIM_MISMATCH = "claim_mismatch"
+    CITATION_OVERLOADING = "citation_overloading"
+    STATISTIC_CONFLATION = "statistic_conflation"
+    METRIC_ERROR = "metric_error"
+    FABRICATED_STATISTIC = "fabricated_statistic"
+    INVERTED_STATISTICS = "inverted_statistics"
+    CHIMERA_CITATION = "chimera_citation"
+
+    # Phase 2: Semantic misrepresentation (Gaps 25-28)
+    SCOPE_EXTRAPOLATION = "scope_extrapolation"
+    EVIDENCE_STRENGTH_INFLATION = "evidence_strength_inflation"
+    CAUSAL_INFERENCE_ESCALATION = "causal_inference_escalation"
+    PARTIAL_SUPPORT = "partial_support"
+
+    # Phase 2: Medical-domain-specific (Gaps 34-37)
+    DRUG_NAME_SUBSTITUTION = "drug_name_substitution"
+    GEOGRAPHIC_POPULATION_MISMATCH = "geographic_population_mismatch"
+    CONFERENCE_ABSTRACT_AS_PAPER = "conference_abstract_as_paper"
+    EFFECT_SIZE_DIRECTION_REVERSAL = "effect_size_direction_reversal"
+
+    # Phase 2: OpenEvidence-specific
+    DENOMINATOR_SHIFT = "denominator_shift"
+    DRAWBACK_OMISSION = "drawback_omission"
+    QUALIFIER_OMISSION = "qualifier_omission"
+    INTERVENTION_MISCHARACTERIZATION = "intervention_mischaracterization"
+    INTERVENTION_MISATTRIBUTION = "intervention_misattribution"
+    CONFLATION_ACROSS_STUDIES = "conflation_across_studies"
+    DECORATION_CITATION = "decoration_citation"
+    SECONDARY_SOURCE_OVERRELIANCE = "secondary_source_overreliance"
+    AMBIGUITY = "ambiguity"
+
+    # Phase 3: Metadata
     AUTHOR_ERROR = "author_error"
     YEAR_ERROR = "year_error"
     JOURNAL_ERROR = "journal_error"
-    CLAIM_MISMATCH = "claim_mismatch"
-    METRIC_ERROR = "metric_error"
-    FABRICATED_STATISTIC = "fabricated_statistic"  # NEW: Specific number without source
-    INVERTED_STATISTICS = "inverted_statistics"  # Correct numbers assigned to wrong metric labels
-    FABRICATED_REPOSITORY = "fabricated_repository"  # GitHub/GitLab URL returns 404 for non-existent repo
-    GENERIC_URL = "generic_url"  # URL resolves to homepage, not specific cited document
-    CHIMERA_CITATION = "chimera_citation"  # Real author/stats from Paper A in fabricated Paper B
+    SAMPLE_SIZE_FABRICATION = "sample_size_fabrication"
+
+    # Source selection failures (Gaps 22-24)
+    RETRACTED_PAPER = "retracted_paper"
+    SUPERSEDED_EVIDENCE = "superseded_evidence"
+    POPULARITY_BIAS = "popularity_bias"
+
+    # Systemic failures (Gaps 29-33, 38)
+    POST_RATIONALIZATION = "post_rationalization"
+    PREDATORY_JOURNAL = "predatory_journal"
+    TRAINING_DATA_CONTAMINATION = "training_data_contamination"
+    GHOST_REFERENCE = "ghost_reference"
+    CONFLICT_OF_INTEREST_BLINDNESS = "conflict_of_interest_blindness"
+
+    # Status
     FABRICATED = "fabricated"
     VERIFIED_CORRECT = "verified_correct"
     UNABLE_TO_VERIFY = "unable_to_verify"
@@ -80,18 +134,40 @@ class VerificationResult:
     surrounding_text: str
 
     # Phase results
-    doi_result: Optional[DOIValidationResult] = None  # Phase 0 (NEW)
-    url_result: Optional[URLVerificationResult] = None  # Phase 1
-    content_result: Optional[ContentVerificationResult] = None  # Phase 2
-    metadata_result: Optional[MetadataVerificationResult] = None  # Phase 3
+    doi_result: Optional[DOIValidationResult] = None
+    url_result: Optional[URLVerificationResult] = None
+    content_result: Optional[ContentVerificationResult] = None
+    metadata_result: Optional[MetadataVerificationResult] = None
 
-    # Claim analysis (for fabricated statistic detection)
+    # Claim analysis
     has_specific_statistic: bool = False
     claimed_statistics: List[str] = field(default_factory=list)
 
+    # Semantic analysis flags
+    is_retracted: bool = False
+    retraction_source: Optional[str] = None
+    is_superseded: bool = False
+    superseded_by: Optional[str] = None
+    study_design: Optional[str] = None  # RCT, cohort, case_report, etc.
+    claim_strength: Optional[str] = None  # demonstrated, suggested, preliminary
+    study_population_scope: Optional[str] = None  # single_site, multicenter, population
+    geographic_scope: Optional[str] = None
+    is_conference_abstract: bool = False
+    has_industry_funding: Optional[bool] = None
+    journal_quality: Optional[str] = None  # indexed, predatory, unknown
+    causal_language_detected: bool = False
+    observational_design: bool = False
+
+    # Risk stratification
+    topic_familiarity_score: Optional[float] = None  # PubMed result count proxy
+    citation_count: Optional[int] = None  # Semantic Scholar / OpenAlex
+    risk_tier: str = "standard"  # low, standard, elevated, high
+
     # Final assessment
+    error_categories: List[ErrorCategory] = field(default_factory=list)
     error_category: ErrorCategory = ErrorCategory.UNABLE_TO_VERIFY
     errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
     needs_correction: bool = False
     suggested_correction: Optional[str] = None
     confidence: float = 0.0
@@ -109,8 +185,30 @@ class VerificationResult:
             'metadata_result': self.metadata_result.to_dict() if self.metadata_result else None,
             'has_specific_statistic': self.has_specific_statistic,
             'claimed_statistics': self.claimed_statistics,
+            'semantic_flags': {
+                'is_retracted': self.is_retracted,
+                'retraction_source': self.retraction_source,
+                'is_superseded': self.is_superseded,
+                'superseded_by': self.superseded_by,
+                'study_design': self.study_design,
+                'claim_strength': self.claim_strength,
+                'study_population_scope': self.study_population_scope,
+                'geographic_scope': self.geographic_scope,
+                'is_conference_abstract': self.is_conference_abstract,
+                'has_industry_funding': self.has_industry_funding,
+                'journal_quality': self.journal_quality,
+                'causal_language_detected': self.causal_language_detected,
+                'observational_design': self.observational_design,
+            },
+            'risk_stratification': {
+                'topic_familiarity_score': self.topic_familiarity_score,
+                'citation_count': self.citation_count,
+                'risk_tier': self.risk_tier,
+            },
             'error_category': self.error_category.value,
+            'error_categories': [e.value for e in self.error_categories],
             'errors': self.errors,
+            'warnings': self.warnings,
             'needs_correction': self.needs_correction,
             'suggested_correction': self.suggested_correction,
             'confidence': self.confidence
@@ -133,40 +231,84 @@ class PipelineReport:
     # Summary statistics
     verified_correct: int = 0
     total_errors: int = 0
-    broken_urls: int = 0
-    fabricated_dois: int = 0  # NEW
-    wrong_papers: int = 0
-    author_errors: int = 0
-    year_errors: int = 0
-    claim_mismatches: int = 0
-    fabricated_statistics: int = 0  # NEW
+    total_warnings: int = 0
     unable_to_verify: int = 0
 
+    # Error counts by category
+    error_counts: Dict[str, int] = field(default_factory=dict)
+
+    # Risk distribution
+    risk_distribution: Dict[str, int] = field(default_factory=lambda: {
+        'low': 0, 'standard': 0, 'elevated': 0, 'high': 0
+    })
+
     def to_dict(self) -> Dict:
+        error_rate = "N/A"
+        if self.unique_citations > 0:
+            error_rate = f"{(self.total_errors / self.unique_citations * 100):.1f}%"
+
         return {
             'timestamp': self.timestamp,
             'source_path': self.source_path,
+            'pipeline_version': '4.0',
+            'error_taxonomy_version': '2.0',
+            'total_failure_modes': len(ErrorCategory) - 2,  # exclude VERIFIED_CORRECT, UNABLE_TO_VERIFY
             'summary': {
                 'total_citations': self.total_citations,
                 'unique_citations': self.unique_citations,
                 'duplicate_citations': self.duplicate_citations,
                 'verified_correct': self.verified_correct,
                 'total_errors': self.total_errors,
-                'error_rate': f"{(self.total_errors / self.unique_citations * 100):.1f}%" if self.unique_citations > 0 else "N/A",
-                'by_category': {
-                    'broken_urls': self.broken_urls,
-                    'fabricated_dois': self.fabricated_dois,
-                    'wrong_papers': self.wrong_papers,
-                    'author_errors': self.author_errors,
-                    'year_errors': self.year_errors,
-                    'claim_mismatches': self.claim_mismatches,
-                    'fabricated_statistics': self.fabricated_statistics,
-                    'unable_to_verify': self.unable_to_verify
-                }
+                'total_warnings': self.total_warnings,
+                'error_rate': error_rate,
+                'unable_to_verify': self.unable_to_verify,
+                'by_category': self.error_counts,
+                'by_phase': self._errors_by_phase(),
+                'risk_distribution': self.risk_distribution,
             },
             'results': [r.to_dict() for r in self.results],
             'rubric_scores': [s.to_dict() for s in self.rubric_scores] if self.rubric_scores else []
         }
+
+    def _errors_by_phase(self) -> Dict[str, int]:
+        """Aggregate error counts by verification phase."""
+        phase_map = {
+            'phase_0_1_structural': [
+                'broken_url', 'fabricated_doi', 'fabricated_repository', 'generic_url',
+                'fabricated'
+            ],
+            'phase_2_content': [
+                'wrong_paper', 'claim_mismatch', 'citation_overloading',
+                'statistic_conflation', 'metric_error', 'fabricated_statistic',
+                'inverted_statistics', 'chimera_citation'
+            ],
+            'phase_2_semantic': [
+                'scope_extrapolation', 'evidence_strength_inflation',
+                'causal_inference_escalation', 'partial_support',
+                'drug_name_substitution', 'geographic_population_mismatch',
+                'conference_abstract_as_paper', 'effect_size_direction_reversal',
+                'denominator_shift', 'drawback_omission', 'qualifier_omission',
+                'intervention_mischaracterization', 'intervention_misattribution',
+                'conflation_across_studies', 'decoration_citation',
+                'secondary_source_overreliance', 'ambiguity'
+            ],
+            'phase_3_metadata': [
+                'author_error', 'year_error', 'journal_error',
+                'sample_size_fabrication'
+            ],
+            'source_selection': [
+                'retracted_paper', 'superseded_evidence', 'popularity_bias'
+            ],
+            'systemic': [
+                'post_rationalization', 'predatory_journal',
+                'training_data_contamination', 'ghost_reference',
+                'conflict_of_interest_blindness'
+            ]
+        }
+        result = {}
+        for phase, categories in phase_map.items():
+            result[phase] = sum(self.error_counts.get(c, 0) for c in categories)
+        return result
 
 
 class VerificationPipeline:
@@ -417,29 +559,20 @@ class VerificationPipeline:
         for r in results:
             if r.error_category == ErrorCategory.VERIFIED_CORRECT:
                 report.verified_correct += 1
-            elif r.error_category == ErrorCategory.BROKEN_URL:
-                report.broken_urls += 1
-                report.total_errors += 1
-            elif r.error_category == ErrorCategory.FABRICATED_DOI:
-                report.fabricated_dois += 1
-                report.total_errors += 1
-            elif r.error_category == ErrorCategory.FABRICATED_STATISTIC:
-                report.fabricated_statistics += 1
-                report.total_errors += 1
-            elif r.error_category == ErrorCategory.WRONG_PAPER:
-                report.wrong_papers += 1
-                report.total_errors += 1
-            elif r.error_category == ErrorCategory.AUTHOR_ERROR:
-                report.author_errors += 1
-                report.total_errors += 1
-            elif r.error_category == ErrorCategory.YEAR_ERROR:
-                report.year_errors += 1
-                report.total_errors += 1
-            elif r.error_category == ErrorCategory.CLAIM_MISMATCH:
-                report.claim_mismatches += 1
-                report.total_errors += 1
             elif r.error_category == ErrorCategory.UNABLE_TO_VERIFY:
                 report.unable_to_verify += 1
+            else:
+                report.total_errors += 1
+                cat_key = r.error_category.value
+                report.error_counts[cat_key] = report.error_counts.get(cat_key, 0) + 1
+
+            # Count warnings separately (non-blocking issues)
+            report.total_warnings += len(r.warnings)
+
+            # Track risk distribution
+            tier = r.risk_tier
+            if tier in report.risk_distribution:
+                report.risk_distribution[tier] += 1
 
         # Rubric scoring
         print("\n[Rubric Scoring]")
@@ -535,35 +668,70 @@ def export_report(report: PipelineReport, output_path: str) -> None:
 
 def generate_markdown_report(report: PipelineReport, output_path: str) -> None:
     """Generate a human-readable markdown report."""
+    error_rate = "N/A"
+    if report.unique_citations > 0:
+        error_rate = f"{report.total_errors/report.unique_citations*100:.1f}%"
+
     lines = [
         "# Citation Verification Report",
         "",
         f"**Generated:** {report.timestamp}",
         f"**Source:** {report.source_path}",
+        f"**Pipeline Version:** 4.0",
+        f"**Error Taxonomy:** 42 failure modes across 6 categories",
         "",
         "## Summary",
         "",
-        f"| Metric | Count |",
-        f"|--------|-------|",
+        "| Metric | Count |",
+        "|--------|-------|",
         f"| Total citations | {report.total_citations} |",
         f"| Unique citations | {report.unique_citations} |",
         f"| Verified correct | {report.verified_correct} |",
         f"| Total errors | {report.total_errors} |",
-        f"| Error rate | {report.total_errors/report.unique_citations*100:.1f}% |",
+        f"| Total warnings | {report.total_warnings} |",
+        f"| Error rate | {error_rate} |",
+        f"| Unable to verify | {report.unable_to_verify} |",
         "",
         "## Errors by Category",
         "",
-        f"| Category | Count |",
-        f"|----------|-------|",
-        f"| Broken URLs | {report.broken_urls} |",
-        f"| Wrong papers | {report.wrong_papers} |",
-        f"| Author errors | {report.author_errors} |",
-        f"| Year errors | {report.year_errors} |",
-        f"| Claim mismatches | {report.claim_mismatches} |",
-        "",
-        "## Citations Requiring Correction",
-        "",
+        "| Category | Count |",
+        "|----------|-------|",
     ]
+
+    # Sort categories by count descending
+    sorted_cats = sorted(report.error_counts.items(), key=lambda x: x[1], reverse=True)
+    for cat, count in sorted_cats:
+        label = cat.replace('_', ' ').title()
+        lines.append(f"| {label} | {count} |")
+
+    lines.extend(["", "## Errors by Phase", ""])
+    phase_data = report._errors_by_phase()
+    lines.extend(["| Phase | Errors |", "|-------|--------|"])
+    phase_labels = {
+        'phase_0_1_structural': 'Phase 0-1: Structural (DOI/URL)',
+        'phase_2_content': 'Phase 2: Content Alignment',
+        'phase_2_semantic': 'Phase 2: Semantic Misrepresentation',
+        'phase_3_metadata': 'Phase 3: Metadata',
+        'source_selection': 'Source Selection',
+        'systemic': 'Systemic',
+    }
+    for key, label in phase_labels.items():
+        count = phase_data.get(key, 0)
+        if count > 0:
+            lines.append(f"| {label} | {count} |")
+
+    lines.extend([
+        "",
+        "## Risk Distribution",
+        "",
+        "| Risk Tier | Citations |",
+        "|-----------|-----------|",
+    ])
+    for tier in ['high', 'elevated', 'standard', 'low']:
+        count = report.risk_distribution.get(tier, 0)
+        lines.append(f"| {tier.title()} | {count} |")
+
+    lines.extend(["", "## Citations Requiring Correction", ""])
 
     for r in report.results:
         if r.needs_correction:
@@ -573,11 +741,12 @@ def generate_markdown_report(report: PipelineReport, output_path: str) -> None:
                 f"**File:** {r.file_path}:{r.line_number}",
                 f"**URL:** {r.url}",
                 f"**Error:** {r.error_category.value}",
+                f"**Risk Tier:** {r.risk_tier}",
                 f"**Details:** {'; '.join(r.errors)}",
-                "",
-                "---",
-                "",
             ])
+            if r.warnings:
+                lines.append(f"**Warnings:** {'; '.join(r.warnings)}")
+            lines.extend(["", "---", ""])
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))

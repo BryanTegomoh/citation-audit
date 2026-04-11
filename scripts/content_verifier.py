@@ -3,12 +3,14 @@
 Content Verifier Module (Phase 2)
 
 Extracts content from URLs and compares against inline claims.
+Implements a 4-class support taxonomy (Supported, Partially Supported,
+Unsupported, Uncertain) rather than binary aligned/misaligned.
 
-Part of the Four-Phase Citation Verification Pipeline.
+Part of the Five-Phase Citation Verification Pipeline.
 
-NOTE: This module requires human judgment for final verification.
-The automated components extract and flag potential mismatches
-for human review.
+Automated components extract and flag potential mismatches
+for human review. Full semantic verification (scope, causality,
+evidence strength) is handled by semantic_verifier.py.
 """
 
 import re
@@ -23,10 +25,16 @@ from enum import Enum
 
 
 class AlignmentStatus(Enum):
-    """Content-claim alignment status."""
-    ALIGNED = "aligned"
-    PARTIAL_MATCH = "partial_match"
-    MISMATCH = "mismatch"
+    """Content-claim alignment status (4-class system per SemanticCite)."""
+    SUPPORTED = "supported"
+    PARTIALLY_SUPPORTED = "partially_supported"
+    UNSUPPORTED = "unsupported"
+    UNCERTAIN = "uncertain"
+
+    # Legacy compatibility aliases
+    ALIGNED = "supported"
+    PARTIAL_MATCH = "partially_supported"
+    MISMATCH = "unsupported"
     WRONG_PAPER = "wrong_paper"
     UNABLE_TO_VERIFY = "unable_to_verify"
     REQUIRES_REVIEW = "requires_review"

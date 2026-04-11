@@ -31,5 +31,9 @@ htmlcov/
 reports/*_files/
 reports/*.html
 
+# Quarto render output
+README.html
+README_files/
+
 # Run outputs
 scripts/safety_report.*

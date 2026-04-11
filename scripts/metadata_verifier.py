@@ -2,9 +2,11 @@
 """
 Metadata Verifier Module (Phase 3)
 
-Verifies citation metadata accuracy (author, year, journal).
+Verifies citation metadata accuracy (author, year, journal) and checks
+for retraction status, publication type (conference abstract vs. full paper),
+and journal quality indicators.
 
-Part of the Four-Phase Citation Verification Pipeline.
+Part of the Five-Phase Citation Verification Pipeline.
 """
 
 import re
@@ -64,7 +66,11 @@ class PaperMetadata:
     journal: Optional[str] = None
     doi: Optional[str] = None
     pmid: Optional[str] = None
-    source: str = "unknown"  # Where metadata came from
+    source: str = "unknown"
+    is_retracted: bool = False
+    retraction_doi: Optional[str] = None
+    publication_type: Optional[str] = None  # journal-article, proceedings-article, etc.
+    funding_sources: Optional[List[str]] = None
 
     def to_dict(self) -> Dict:
         return asdict(self)
@@ -300,6 +306,32 @@ class CrossRefFetcher:
         container = message.get('container-title', [])
         if container:
             metadata.journal = container[0]
+
+        # Publication type (journal-article, proceedings-article, etc.)
+        metadata.publication_type = message.get('type')
+
+        # Retraction status
+        update_to = message.get('update-to', [])
+        for update in update_to:
+            if update.get('type') == 'retraction':
+                metadata.is_retracted = True
+                metadata.retraction_doi = update.get('DOI')
+
+        relation = message.get('relation', {})
+        is_retracted_by = relation.get('is-retracted-by', [])
+        if is_retracted_by:
+            metadata.is_retracted = True
+            metadata.retraction_doi = is_retracted_by[0].get('id')
+
+        if message.get('type') == 'retracted-article':
+            metadata.is_retracted = True
+
+        # Funding sources
+        funders = message.get('funder', [])
+        if funders:
+            metadata.funding_sources = [
+                f.get('name', 'Unknown') for f in funders if f.get('name')
+            ]
 
         return metadata
 

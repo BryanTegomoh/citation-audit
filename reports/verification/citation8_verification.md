@@ -1,7 +1,7 @@
 # Citation 8 Verification Report
 
 **Verification date:** 2026-03-04
-**Auditor:** Bryan Tegomoh (with Claude Opus 4.6 verification pipeline)
+**Auditor:** Bryan Tegomoh
 
 ---
 

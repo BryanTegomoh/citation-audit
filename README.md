@@ -8,9 +8,9 @@
 
 ## The Problem
 
-Citations that look correct frequently are not. Standard verification (checking whether a URL resolves) catches approximately 21% of errors. The remaining 79% require reading the cited paper and confirming it supports the specific claim.
+Citations that look correct frequently are not. Standard verification (checking whether a URL resolves) catches approximately 21% of errors. The remaining 79% require reading the cited paper and confirming it supports the specific claim. This finding is consistent with SourceCheckup (Nature Communications 2025), which found 50-90% of LLM-generated medical citations are not fully supported by their sources.
 
-This toolkit implements a five-phase verification pipeline to catch the full spectrum of citation errors, from fabricated DOIs to valid papers that do not support the attributed claims.
+This toolkit implements a five-phase verification pipeline with 42 documented failure modes across six categories, covering everything from fabricated DOIs to scope extrapolation, retracted paper citation, and evidence strength inflation.
 
 It can also audit AI-generated medical coding output by checking whether suggested E/M, CPT, and ICD-10 codes are supported by the clinical transcript and structured documentation.
 
@@ -19,29 +19,91 @@ It can also audit AI-generated medical coding output by checking whether suggest
 ## The Five-Phase Pipeline
 
 ```
-Phase 0: DOI Existence    Does this DOI exist in CrossRef?
+Phase 0: DOI Existence        CrossRef registry lookup
          |
-Phase 1: URL Resolution   Does the URL return 200 OK?
+Phase 1: URL Resolution       HTTP status + redirect chain analysis
          |
-Phase 2: Content Alignment   Does the paper support the claim?
+Phase 2: Content Alignment    Semantic verification against source text
+         |    + Semantic       Scope, causality, evidence strength, direction
          |
-Phase 3: Metadata Accuracy   Are author/year/journal correct?
+Phase 3: Metadata Accuracy    Author, year, journal, retraction, funding
          |
-Phase 4: Correction        What is the fix?
+Phase 4: Correction           Fix identification and replacement search
 ```
 
-### Error Categories
+### Error Taxonomy (42 Failure Modes)
 
-| Error Type | Phase | Description |
-|------------|-------|-------------|
-| FABRICATED_DOI | 0 | DOI follows valid format but does not exist |
-| BROKEN_URL | 1 | URL returns 404 or fails to resolve |
-| WRONG_PAPER | 2 | Valid URL, completely different paper |
-| CLAIM_MISMATCH | 2 | Paper exists but does not support claim |
-| CITATION_OVERLOADING | 2 | Single citation used for claims from multiple papers |
-| STATISTIC_CONFLATION | 2 | Multiple study periods collapsed into one figure |
-| AUTHOR_ERROR | 3 | Wrong first author name |
-| YEAR_ERROR | 3 | Wrong publication year |
+**Phase 0-1: Structural**
+
+| Error Type | Description |
+|------------|-------------|
+| FABRICATED_DOI | DOI follows valid format but does not exist in CrossRef |
+| BROKEN_URL | URL returns 404 or fails to resolve |
+| FABRICATED_REPOSITORY | Plausible GitHub/GitLab URL that does not exist |
+| GENERIC_URL | URL resolves to homepage, not specific cited document |
+| FABRICATED | Paper, authors, and journal do not exist |
+
+**Phase 2: Content Alignment**
+
+| Error Type | Description |
+|------------|-------------|
+| WRONG_PAPER | Valid URL, completely different paper |
+| CLAIM_MISMATCH | Paper exists but does not support specific claim |
+| CITATION_OVERLOADING | Single citation used for claims from multiple papers |
+| STATISTIC_CONFLATION | Multiple study periods collapsed into one figure |
+| METRIC_ERROR | Specific numbers (percentages, sample sizes) are wrong |
+| FABRICATED_STATISTIC | Numbers cited without verifiable source |
+| INVERTED_STATISTICS | Correct numbers assigned to wrong labels |
+| CHIMERA_CITATION | Real components assembled into fabricated paper |
+
+**Phase 2: Semantic Misrepresentation**
+
+| Error Type | Description |
+|------------|-------------|
+| SCOPE_EXTRAPOLATION | Narrow study cited as broad evidence |
+| EVIDENCE_STRENGTH_INFLATION | Pilot data cited as "demonstrated" |
+| CAUSAL_INFERENCE_ESCALATION | Correlation cited as causation |
+| PARTIAL_SUPPORT | Paper partially supports claim (not fully) |
+| DRUG_NAME_SUBSTITUTION | Phonetically similar but different drug |
+| GEOGRAPHIC_POPULATION_MISMATCH | Single-country study cited as global evidence |
+| CONFERENCE_ABSTRACT_AS_PAPER | Preliminary abstract cited as full paper |
+| EFFECT_SIZE_DIRECTION_REVERSAL | Positive finding cited as negative (or vice versa) |
+| DENOMINATOR_SHIFT | Citation changes denominator, altering mathematical meaning |
+| DRAWBACK_OMISSION | Balanced paper presented as one-sided |
+| QUALIFIER_OMISSION | Paper says "rare"; response drops qualifier |
+| INTERVENTION_MISCHARACTERIZATION | Finding from Study A attributed to Study B |
+| INTERVENTION_MISATTRIBUTION | Correct figure attributed to wrong mechanism |
+| CONFLATION_ACROSS_STUDIES | Two distinct interventions merged into one |
+| DECORATION_CITATION | Citation appears but adds no evidentiary value |
+| SECONDARY_SOURCE_OVERRELIANCE | Grand Rounds cited when original guideline should be |
+| AMBIGUITY | Phrasing creates confusion between distinct concepts |
+
+**Phase 3: Metadata**
+
+| Error Type | Description |
+|------------|-------------|
+| AUTHOR_ERROR | Wrong first author name |
+| YEAR_ERROR | Wrong publication year |
+| JOURNAL_ERROR | Correct paper, wrong journal name |
+| SAMPLE_SIZE_FABRICATION | Plausible sample size that does not match study |
+
+**Source Selection**
+
+| Error Type | Description |
+|------------|-------------|
+| RETRACTED_PAPER | Paper has been formally retracted |
+| SUPERSEDED_EVIDENCE | Guideline replaced by newer version |
+| POPULARITY_BIAS | Most-cited paper selected over most-relevant |
+
+**Systemic**
+
+| Error Type | Description |
+|------------|-------------|
+| POST_RATIONALIZATION | Correct citation retrofitted after generation |
+| PREDATORY_JOURNAL | Paper from predatory/low-quality venue |
+| TRAINING_DATA_CONTAMINATION | Fabricated citation entered published literature |
+| GHOST_REFERENCE | Secondary citations create false verification loop |
+| CONFLICT_OF_INTEREST_BLINDNESS | Industry-funded study cited without disclosure |
 
 ---
 
@@ -50,17 +112,23 @@ Phase 4: Correction        What is the fix?
 ```bash
 pip install -r requirements.txt
 
-# Verify all markdown files in a directory
+# Full pipeline (all phases)
 python scripts/verification_pipeline.py ./content/ -o report.json
 
-# Include a human-readable report
+# With human-readable report
 python scripts/verification_pipeline.py ./content/ -o report.json --markdown
 
 # Verify with rubric scoring (JSON + markdown rubric reports)
 python scripts/verification_pipeline.py ./content/ -o report.json --rubric
 
+# Specific phases only
+python scripts/verification_pipeline.py ./content/ --phases 0 1
+
 # Verify a single file
 python scripts/verification_pipeline.py paper.md -o report.json
+
+# Semantic verification (scope, causality, retraction)
+python scripts/semantic_verifier.py content_verification.json -o semantic_report.json
 
 # Audit AI-generated medical coding for a sample visit transcript
 python scripts/coding_audit.py examples/coding_sample.json
@@ -151,12 +219,13 @@ rubric = CitationRubric(weights=weights)
 citation-audit/
 |
 |-- scripts/                  Verification pipeline scripts
-|   |-- verification_pipeline.py    Main tool (runs full pipeline)
+|   |-- verification_pipeline.py    Main orchestrator (all phases)
 |   |-- citation_extractor.py       Extract citations from markdown
 |   |-- doi_validator.py            Phase 0: CrossRef API validation
 |   |-- url_verifier.py             Phase 1: HTTP status checking
-|   |-- content_verifier.py         Phase 2: Content alignment
-|   |-- metadata_verifier.py        Phase 3: Author/year validation
+|   |-- content_verifier.py         Phase 2: Content-claim alignment
+|   |-- semantic_verifier.py        Phase 2+: Semantic verification
+|   |-- metadata_verifier.py        Phase 3: Metadata + retraction
 |   |-- rubric.py                   Multi-dimensional rubric scoring
 |
 |-- src/                      Installable Python package
@@ -165,13 +234,18 @@ citation-audit/
 |   |-- reporters/                  Markdown report generation
 |
 |-- data/                     Reference data
-|   |-- publisher_prefixes.json     DOI prefix to publisher mapping (90+)
+|   |-- publisher_prefixes.json     DOI prefix-to-publisher mapping (90+)
 |   |-- journal_patterns.json       Journal name patterns
 |
-|-- docs/                     Documentation and methodology
+|-- docs/                     Documentation
+|   |-- METHODOLOGY.md              Full methodology (42 failure modes)
+|   |-- hallucination-patterns.md   Pattern catalog with examples
+|   |-- verification-workflow.md    Decision tree for verification
+|   |-- case-studies.md             Real-world audit examples
+|
 |-- papers/                   Research manuscripts
 |-- reports/                  Audit reports
-|-- examples/                 Sample files
+|-- examples/                 Sample files and reports
 |-- tests/                    Test suite
 ```
 
@@ -183,16 +257,52 @@ From verification of 838 citations across 22 medical specialty chapters:
 
 - 21% of citation errors are URL-detectable (broken links, failed DOIs)
 - 79% require content-level verification (Phase 2+)
-- 21 distinct failure modes documented (see [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md))
+- 64% of fabricated DOIs resolve to real but unrelated papers
+- Fabrication rates range from 6% (well-studied topics) to 29% (niche topics)
+- 42 distinct failure modes documented across 6 categories
+
+These findings align with SourceCheckup (Nature Communications 2025), which found 50-90% of LLM medical citations are not fully supported by their sources, and the GPTZero NeurIPS analysis, which found 100+ hallucinated citations surviving peer review.
+
+---
+
+## Semantic Verification Module
+
+The `semantic_verifier.py` module detects higher-order failures invisible to URL checking:
+
+| Check | What It Detects |
+|-------|-----------------|
+| `RetractionChecker` | Papers retracted after publication |
+| `StudyDesignClassifier` | Study design (RCT, cohort, case report, etc.) |
+| `CausalLanguageDetector` | Causal claims from observational studies |
+| `ScopeAnalyzer` | Narrow studies cited as broad evidence |
+| `DirectionOfEffectChecker` | Positive findings cited as negative |
+| `ConferenceAbstractDetector` | Abstracts cited as full papers |
+| `DrugNameChecker` | Phonetic drug name substitutions |
+| `FundingAnalyzer` | Industry funding and COI flags |
 
 ---
 
 ## Limitations
 
-1. Phase 2 (content-claim alignment) requires domain expertise and human judgment
-2. Paywalled content limits automated verification
-3. Tested primarily with English-language citations
-4. CrossRef API has rate limits for high-volume verification
+1. Phase 2 (content-claim alignment) requires domain expertise for final judgment
+2. Paywalled content limits automated full-text verification
+3. Retraction database coverage depends on CrossRef metadata completeness
+4. Tested primarily with English-language citations
+5. CrossRef API has rate limits for high-volume verification
+6. Semantic checks (scope, causality) are heuristic, not deterministic
+
+---
+
+## Related Work
+
+| Tool / Paper | Focus | Relationship |
+|-------------|-------|-------------|
+| SourceCheckup (Nature Communications 2025) | 50-90% non-support rate | Validates the 79% content-level finding |
+| BibAgent (arXiv 2601.16993) | 5-dimension miscitation taxonomy | This toolkit extends with medical-specific modes |
+| SemanticCite (arXiv 2511.16198) | 4-class support taxonomy | Adopted in content_verifier.py |
+| GhostCite (arXiv 2602.06718) | 2.2M citations, 14-94% hallucination | Prevalence data for error taxonomy |
+| CheckIfExist (arXiv 2602.15871) | Multi-source DOI validation | Complementary to Phase 0 |
+| DriftMedQA (arXiv 2505.07968) | Guideline supersession detection | Informs Gap 23 |
 
 ---
 
@@ -200,7 +310,7 @@ From verification of 838 citations across 22 medical specialty chapters:
 
 ```bibtex
 @misc{tegomoh2026citation,
-  title={Five-Phase Citation Verification Pipeline},
+  title={Five-Phase Citation Verification Pipeline for AI-Generated Medical Text},
   author={Tegomoh, Bryan},
   year={2026},
   url={https://github.com/BryanTegomoh/citation-audit}
