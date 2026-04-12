@@ -250,7 +250,7 @@ citation-audit/
 |   |-- journal_patterns.json       Journal name patterns
 |
 |-- docs/                     Documentation
-|   |-- METHODOLOGY.md              Full methodology (42 failure modes)
+|   |-- METHODOLOGY.md              Full methodology (56 failure modes)
 |   |-- hallucination-patterns.md   Pattern catalog with examples
 |   |-- verification-workflow.md    Decision tree for verification
 |   |-- case-studies.md             Real-world audit examples
@@ -271,7 +271,7 @@ From verification of 838 citations across 22 medical specialty chapters:
 - 79% require content-level verification (Phase 2+)
 - 64% of fabricated DOIs resolve to real but unrelated papers
 - Fabrication rates range from 6% (well-studied topics) to 29% (niche topics)
-- 42 distinct failure modes documented across 6 categories
+- 56 distinct failure modes documented across 6 categories
 
 These findings align with SourceCheckup (Nature Communications 2025), which found 50-90% of LLM medical citations are not fully supported by their sources, and the GPTZero NeurIPS analysis, which found 100+ hallucinated citations surviving peer review.
 

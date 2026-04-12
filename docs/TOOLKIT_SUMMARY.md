@@ -15,11 +15,15 @@ citation-audit/
 ├── Makefile                          ✓ Common commands
 ├── TOOLKIT_SUMMARY.md                ✓ This file
 │
-├── docs/                             ✓ Complete documentation (4 files)
-│   ├── hallucination-patterns.md     • 5 patterns with examples
+├── docs/                             ✓ Complete documentation (7 files)
+│   ├── hallucination-patterns.md     • 25 patterns with examples (Tiers 1-3)
+│   ├── METHODOLOGY.md                • Full methodology (56 failure modes, v3.3)
+│   ├── TOOLKIT_README.md             • CLI documentation
+│   ├── TOOLKIT_SUMMARY.md            • This file
 │   ├── verification-workflow.md      • Manual + automated workflows
-│   ├── doi-reference.md              • DOI structure, 80+ publisher prefixes
-│   └── case-studies.md               • 6 anonymized real examples
+│   ├── doi-reference.md              • DOI structure, 90+ publisher prefixes
+│   ├── case-studies.md               • 6 anonymized real examples
+│   └── supplementary/                • Correction log, proposals
 │
 ├── src/                              ✓ Complete Python implementation
 │   ├── __init__.py
@@ -42,34 +46,86 @@ citation-audit/
 │       ├── __init__.py
 │       └── markdown.py               • Markdown reports
 │
+├── scripts/                          ✓ Verification pipeline scripts
+│   ├── verification_pipeline.py      • Main orchestrator (all phases)
+│   ├── citation_extractor.py         • Citation extraction from markdown
+│   ├── doi_validator.py              • Phase 0: CrossRef API validation
+│   ├── url_verifier.py               • Phase 1: HTTP status checking
+│   ├── content_verifier.py           • Phase 2: Content-claim alignment
+│   ├── semantic_verifier.py          • Phase 2+: Scope, causality, retraction
+│   ├── metadata_verifier.py          • Phase 3: Metadata + retraction checks
+│   ├── rubric.py                     • Multi-dimensional rubric scoring
+│   ├── coding_audit.py               • E/M, CPT, ICD-10 coding audit
+│   └── generate_figures.py           • Report figure generation
+│
 ├── data/                             ✓ Reference data
-│   ├── publisher_prefixes.json       • 80+ publisher DOI prefixes
+│   ├── publisher_prefixes.json       • 90+ publisher DOI prefixes
 │   └── journal_patterns.json         • Journal name to prefix mapping
 │
-├── examples/                         ✓ Sample files (4 examples)
+├── examples/                         ✓ Sample files
 │   ├── sample_markdown.md            • Markdown with citations
 │   ├── sample_dois.txt               • Plain DOI list
 │   ├── sample_bibtex.bib             • BibTeX entries
-│   └── sample_report.md              • Example output report
+│   ├── sample_report.md              • Example output report
+│   └── coding_sample.json            • Sample coding audit payload
+│
+├── reports/                          ✓ Audit reports
+│   ├── openevidence-audit-2026-03-04.md
+│   └── verification/                 • Per-citation verification reports
 │
 └── tests/                            ✓ Test suite
     ├── README.md                     • Testing documentation
     ├── test_extractors.py            • Extraction tests
     ├── test_validators.py            • Validation tests
-    └── test_verify.py                • Verification tests
+    ├── test_verify.py                • Verification tests
+    ├── test_rubric.py                • Rubric scoring tests
+    └── test_coding_verifier.py       • Coding audit tests
 ```
 
-**Total: 33 files created**
+## 25 Hallucination Patterns Documented
 
-## Five Hallucination Patterns Documented
+Based on real errors found during the DOI audit, expanded through systematic research synthesis:
 
-Based on real errors found during the DOI audit:
+**Tier 1 (Structural — Phases 0-1):**
+1. Valid DOI, Wrong Paper
+2. Non-Existent DOI (404)
+3. Wrong Metadata (author/year)
+4. Completely Fabricated
+5. Wrong Publisher Prefix
+6. Memory-Constructed URL
 
-1. **Valid DOI, Wrong Paper** - DOI exists but resolves to different paper
-2. **Non-Existent DOI (404)** - DOI format valid but doesn't exist
-3. **Wrong Metadata** - DOI correct but citation has wrong author/year
-4. **Completely Fabricated** - Paper, authors, journal all made up
-5. **Wrong Publisher Prefix** - DOI prefix doesn't match claimed journal
+**Tier 2 (Content-Level — Phase 2):**
+7. Chimera Citation
+8. Citation Overloading
+9. Reverse Overloading
+10. Statistical Conflation
+11. Table/Figure Misread
+12. Secondary Source Attribution
+13. Self-Referential Loop
+14. Withdrawn/Corrected Paper Without Notice
+15. Misattributed Authorship
+16. Truncated/Corrupted Metadata
+17. Edition/Version Confusion
+
+**Tier 3 (Semantic — Phase 2+):**
+18. Scope Extrapolation
+19. Evidence Strength Inflation
+20. Causal Inference Escalation
+21. Direction-of-Effect Reversal
+22. Retracted Paper Citation
+23. Superseded Evidence
+24. Drug Name Substitution
+25. Geographic Mismatch
+26. Conference Abstract as Paper
+27. Preprint-as-Published
+28. Dosage/Unit Transposition
+29. Confidence Interval Fabrication
+30. Ghost Update
+31. Off-Label Indication Conflation
+32. Survival Bias in Source Selection
+33. Regulatory Status Mismatch
+
+See [hallucination-patterns.md](hallucination-patterns.md) for full descriptions, examples, and detection methods for all patterns.
 
 ## Key Features Implemented
 
@@ -152,27 +208,33 @@ Mapping of journal names to expected prefixes for validation.
 
 ## Documentation Quality
 
-### Four Comprehensive Guides
+### Comprehensive Documentation
 
-1. **hallucination-patterns.md** (4,500+ words)
-   - Detailed explanation of each pattern
-   - Why AI generates these errors
-   - Detection strategies
+1. **hallucination-patterns.md** (12,000+ words)
+   - 33 patterns across 3 tiers
+   - Why AI generates each error
+   - Detection strategies per pattern
    - Prevention methods
 
-2. **verification-workflow.md** (3,500+ words)
+2. **METHODOLOGY.md** (17,000+ words)
+   - 56 failure modes (54 numbered gaps + 2 OpenEvidence)
+   - Five-phase verification architecture
+   - Reproducible protocol
+   - Full reference list
+
+3. **verification-workflow.md** (3,500+ words)
    - Manual verification checklist
    - Decision trees
    - Batch verification strategies
    - Quality assurance levels
 
-3. **doi-reference.md** (3,000+ words)
+4. **doi-reference.md** (3,000+ words)
    - DOI anatomy and structure
-   - 80+ publisher prefixes
+   - 90+ publisher prefixes
    - Common patterns by publisher
    - Testing methods
 
-4. **case-studies.md** (3,000+ words)
+5. **case-studies.md** (3,000+ words)
    - 6 anonymized real examples
    - Pattern identification
    - Before/after fixes
@@ -282,5 +344,6 @@ See CONTRIBUTING.md for guidelines on:
 ---
 
 **Built**: 2025-12-29
-**Version**: 1.0.0
+**Last Updated**: 2026-04-11
+**Version**: 1.3.0
 **Status**: Production Ready

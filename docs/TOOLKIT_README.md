@@ -93,7 +93,7 @@ See [examples/sample_report.md](examples/sample_report.md) for a sample output.
 
 ## Documentation
 
-- [Hallucination Patterns](docs/hallucination-patterns.md) - The 5 types of citation errors
+- [Hallucination Patterns](hallucination-patterns.md) - 33 citation error patterns across 3 tiers
 - [Verification Workflow](docs/verification-workflow.md) - Manual verification steps
 - [DOI Reference](docs/doi-reference.md) - Understanding DOI structure and publisher prefixes
 - [Case Studies](docs/case-studies.md) - Real examples of caught errors
@@ -109,40 +109,47 @@ This toolkit uses only free, unauthenticated APIs:
 
 ```
 citation-audit/
-├── README.md                 # Project overview
-├── PAPER.md                  # Technical report (16-category taxonomy)
-├── JOURNAL_PAPER.md          # Formal journal paper (5 patterns)
-├── METHODOLOGY.md            # Operational methodology (v3.3)
-├── TOOLKIT_README.md         # This file (CLI documentation)
-├── TOOLKIT_SUMMARY.md        # Toolkit development summary
+├── README.md                 # Project overview (56 failure modes)
 ├── CONTRIBUTING.md           # Contribution guidelines
 ├── requirements.txt          # Python dependencies
 ├── setup.py                  # Package installation
 ├── Makefile                  # Common commands
 │
 ├── scripts/                  # Verification pipeline scripts
-│   ├── verification_pipeline.py
-│   ├── citation_extractor.py
-│   ├── doi_validator.py
-│   ├── url_verifier.py
-│   ├── content_verifier.py
-│   └── metadata_verifier.py
+│   ├── verification_pipeline.py   # Main orchestrator (all phases)
+│   ├── citation_extractor.py      # Citation extraction from markdown
+│   ├── doi_validator.py           # Phase 0: CrossRef API validation
+│   ├── url_verifier.py            # Phase 1: HTTP status checking
+│   ├── content_verifier.py        # Phase 2: Content-claim alignment
+│   ├── semantic_verifier.py       # Phase 2+: Scope, causality, retraction
+│   ├── metadata_verifier.py       # Phase 3: Metadata + retraction
+│   ├── rubric.py                  # Multi-dimensional rubric scoring
+│   └── coding_audit.py            # E/M, CPT, ICD-10 coding audit
 │
 ├── src/                      # CLI source code
 │   ├── cli.py               # Command-line interface
 │   ├── verify.py            # Core verification logic
-│   ├── extractors/          # Citation extraction
-│   ├── validators/          # DOI validation
+│   ├── coding_verifier.py   # Medical coding verification
+│   ├── extractors/          # Citation extraction (markdown, BibTeX, plaintext)
+│   ├── validators/          # DOI validation (CrossRef, resolver, prefix)
 │   └── reporters/           # Report generation
 │
 ├── data/                     # Reference data
-│   ├── publisher_prefixes.json
-│   └── journal_patterns.json
+│   ├── publisher_prefixes.json    # 90+ publisher DOI prefixes
+│   └── journal_patterns.json      # Journal name to prefix mapping
 │
 ├── docs/                     # Documentation
+│   ├── METHODOLOGY.md             # Full methodology (56 failure modes)
+│   ├── hallucination-patterns.md  # 33 patterns with examples
+│   ├── verification-workflow.md   # Manual + automated workflows
+│   ├── doi-reference.md           # DOI structure, 90+ publisher prefixes
+│   ├── case-studies.md            # Real-world audit examples
+│   └── supplementary/             # Correction log, proposals
+│
+├── papers/                   # Research manuscripts
+├── reports/                  # Audit reports
 ├── examples/                 # Sample files
-├── tests/                    # Unit tests
-└── supplementary/            # Audit logs and raw data
+└── tests/                    # Unit tests (5 test files)
 ```
 
 ## Use Cases
