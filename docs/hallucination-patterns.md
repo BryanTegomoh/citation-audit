@@ -1,6 +1,6 @@
 # Citation Hallucination Patterns
 
-This document describes ten patterns of citation hallucination and metadata error found in AI-generated and human-written academic content. Understanding these patterns helps you recognize and fix citation errors.
+This document describes twelve patterns of citation hallucination and metadata error found in AI-generated and human-written academic content. Understanding these patterns helps you recognize and fix citation errors.
 
 ## Overview
 
@@ -18,6 +18,8 @@ Citation hallucinations occur when the metadata in a citation (author names, yea
 | Truncated/Corrupted Metadata | Low-Medium | Easy | Very Common |
 | Preprint Cited as Published | Medium | Medium | Common |
 | Edition/Version Confusion | Medium | Hard | Occasional |
+| Cross-Paper Attribution | High | Hard | Common in LLM-generated content |
+| Claim-Scope Mismatch | Medium | Hard | Common |
 
 ## Pattern 1: Valid DOI, Wrong Paper
 
@@ -416,3 +418,71 @@ For manual writing:
 - Copy DOIs directly from source
 - Double-check after any editing
 - Run batch verification before submission
+
+---
+
+## Pattern 11: Cross-Paper Attribution
+
+**What it looks like**: Statistics or findings from Paper A are attributed to Paper B. Both papers are real, both URLs resolve, and both cover the same general topic — but the specific claim belongs to the wrong source.
+
+**Example**:
+```
+Citation claims: "non-determinism and data leakage are the most under-addressed 
+risk domains" ([Li et al., 2026](https://arxiv.org/abs/2603.12230))
+
+Li et al. 2026 abstract discusses: indirect prompt injection, confused-deputy 
+behavior, tool exposure, hosting-boundary risk.
+
+Actual source of the non-determinism/data leakage finding: Nguyen et al., 2026 
+(arXiv:2603.09002), which explicitly names "Non-Determinism (mean score 1.231)" 
+and "Data Leakage (1.340)" as most under-addressed domains.
+```
+
+**Why it happens**:
+- Multiple papers cited in the same paragraph; facts migrate between attributions during editing
+- LLMs synthesize across sources and attach the combined result to the nearest citation
+- The papers cover the same domain, so topic-matching passes even though the specific claim does not
+
+**Detection method**:
+1. For each cited statistic or finding, fetch the cited source
+2. Search the abstract and full text for the specific claim
+3. If not found, search other nearby citations in the same passage
+4. Flag when a claim appears in a different paper than the one cited
+
+**How to fix**:
+1. Identify which paper actually contains the specific claim
+2. Update the citation to point to the correct source
+3. If the claim is derived from multiple sources, cite all of them explicitly
+
+**Risk level**: HIGH. Standard link-checking and DOI validation both pass because all papers are real. Only content-level verification catches this error. It is especially common when LLMs or human authors condense findings from multiple papers in the same paragraph.
+
+---
+
+## Pattern 12: Claim-Scope Mismatch
+
+**What it looks like**: The source is real and the URL resolves, but the description of what the source covers overstates or mischaracterizes its actual scope. A paper on "technology and policy implications" gets described as covering "safety and security implications." A paper that discusses one aspect of a topic gets cited as covering the whole topic.
+
+**Example**:
+```
+Cited as: "examined the safety and security implications of self-driving laboratories"
+Actual title: "Autonomous 'self-driving' laboratories: a review of technology and 
+policy implications"
+```
+
+**Why it happens**:
+- Authors paraphrase the source description from memory rather than copying the title
+- "Safety and security" sounds more relevant to the argument being made
+- LLMs generate plausible-sounding descriptions based on the paper's topic rather than its actual framing
+
+**Detection method**:
+1. Fetch the source (abstract, title, or full text)
+2. Compare the inline description against the paper's stated scope (title, abstract, keywords)
+3. Flag when the inline description uses scope language (safety, security, clinical, economic) not present in the source's own framing
+4. Particular red flags: overstating a broader scope ("comprehensive review") or a narrower one ("focused exclusively on X") than the source claims
+
+**How to fix**:
+1. Replace the inline description with language derived from the paper's actual title and abstract
+2. If the specific aspect you need is covered in the paper, quote or paraphrase the relevant section directly with a page/section reference
+3. If the paper does not cover the claimed scope, find a source that does
+
+**Risk level**: MEDIUM. The paper is real and the URL resolves, so structural checks pass. The mismatch is only visible by reading the source. Common in secondary literature reviews and AI-generated content where descriptions are generated from topic associations rather than actual reading.
