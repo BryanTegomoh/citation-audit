@@ -1,0 +1,71 @@
+# Auto-detect text files and normalize line endings (LF in repo, native on checkout)
+* text=auto
+
+# Force LF for these file types (prevents CRLF/LF phantom diffs via OneDrive sync)
+*.py text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.jsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.qmd text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.cfg text eol=lf
+*.ini text eol=lf
+*.txt text eol=lf
+*.csv text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.xml text eol=lf
+*.svg text eol=lf
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+*.r text eol=lf
+*.R text eol=lf
+*.Rmd text eol=lf
+*.lua text eol=lf
+*.sql text eol=lf
+*.env text eol=lf
+*.gitignore text eol=lf
+*.gitattributes text eol=lf
+Makefile text eol=lf
+Dockerfile text eol=lf
+LICENSE text eol=lf
+README text eol=lf
+
+# Binary files (never touch line endings)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.mp4 binary
+*.mp3 binary
+*.sqlite binary
+*.db binary
+*.pkl binary
+*.pickle binary
+*.parquet binary
+*.arrow binary
+*.npy binary
+*.npz binary
+*.h5 binary
+*.hdf5 binary
+*.pt binary
+*.pth binary
+*.onnx binary
+*.safetensors binary
+
