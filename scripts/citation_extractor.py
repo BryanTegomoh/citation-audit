@@ -3,8 +3,14 @@
 Citation Extractor Module
 
 Extracts citations from Markdown files (including Quarto .qmd, standard .md,
-reStructuredText .rst) in the format:
-([Author et al., Year](https://url))
+reStructuredText .rst) in two formats:
+
+  Standard format:  ([Author et al., Year](https://url))
+  Title-anchor format: [Paper Title](https://url) (Author et al., Year/preprint)
+
+The title-anchor format is common when the author/year information appears in
+parentheses immediately after the hyperlink rather than inside the brackets.
+Both formats are extracted and verified through the same pipeline.
 
 Part of the Five-Phase Citation Verification Pipeline.
 
@@ -103,6 +109,24 @@ class CitationExtractor:
         re.IGNORECASE
     )
 
+    # Pattern for title-as-anchor-text citations where author/year follows the link.
+    # Matches: [Paper Title](url) (Author et al., Year) or [Title](url) (Author, preprint)
+    # The anchor text must be 8+ chars (distinguishes titles from navigation text)
+    # and must NOT contain a year (otherwise the standard CITATION_PATTERN handles it).
+    # Group 1: anchor/title text, Group 2: URL, Group 3: author/year parenthetical
+    TITLE_ANCHOR_PATTERN = re.compile(
+        r'\[([^\]]{8,})\]\((https?://[^\)]+)\)'   # [Title text](url)
+        r'\s*\(([^)]*(?:et\s+al\.?|preprint|(?:19|20)\d{2})[^)]*)\)',  # (Author et al., year/preprint)
+        re.IGNORECASE
+    )
+
+    # Pattern to check whether anchor text already contains a year
+    # (used to avoid double-extracting standard-format citations)
+    _YEAR_IN_TEXT = re.compile(r'(?:19|20)\d{2}')
+
+    # Pattern to validate parsed author names (must start with capitalized surname)
+    _AUTHOR_NAME_PATTERN = re.compile(r'^[A-Z][a-z]')
+
     def __init__(self, context_chars: int = 200):
         """
         Initialize extractor.
@@ -131,8 +155,9 @@ class CitationExtractor:
             lines = content.split('\n')
 
         citations = []
+        seen: set = set()  # Track (url, line_number) to deduplicate across passes
 
-        # Track position in content for context extraction
+        # Pass 1: standard format — ([Author et al., Year](url))
         for line_num, line in enumerate(lines, start=1):
             for match in self.CITATION_PATTERN.finditer(line):
                 citation_text = match.group(1)
@@ -159,6 +184,45 @@ class CitationExtractor:
                 )
 
                 citations.append(citation)
+                seen.add((url.lower().rstrip('/'), line_num))
+
+        # Pass 2: title-anchor format — [Paper Title](url) (Author et al., Year/preprint)
+        # Catches citations where anchor text is a paper title and author/year follows the link.
+        for line_num, line in enumerate(lines, start=1):
+            for match in self.TITLE_ANCHOR_PATTERN.finditer(line):
+                anchor_text = match.group(1)
+                url = match.group(2)
+                author_year_text = match.group(3).strip()
+
+                # Skip if anchor text already contains a year (handled by Pass 1)
+                if self._YEAR_IN_TEXT.search(anchor_text):
+                    continue
+
+                # Skip if this exact (url, line) was already extracted by Pass 1
+                if (url.lower().rstrip('/'), line_num) in seen:
+                    continue
+
+                # Use the author/year parenthetical as the citation text
+                authors, year = self._parse_author_year(author_year_text)
+
+                # Validate that parsed author starts with a capitalized name
+                if not self._AUTHOR_NAME_PATTERN.match(authors):
+                    continue
+
+                context = self._extract_context(content, match.start(), lines[:line_num])
+
+                citation = Citation(
+                    citation_text=author_year_text,
+                    url=url,
+                    authors=authors,
+                    year=year,
+                    file_path=str(file_path),
+                    line_number=line_num,
+                    surrounding_text=context
+                )
+
+                citations.append(citation)
+                seen.add((url.lower().rstrip('/'), line_num))
 
         return citations
 
@@ -297,9 +361,11 @@ Examples:
     # Multiple patterns (use shell expansion)
     python citation_extractor.py ./content/*.md ./content/*.qmd
 
-Supported citation format:
+Supported citation formats:
     [Author et al., Year](https://doi.org/...)
     [Author, Year](https://url)
+    [Paper Title](https://url) (Author et al., Year)
+    [Paper Title](https://url) (Author, preprint)
         """
     )
     parser.add_argument('path', help='File or directory path to process')
