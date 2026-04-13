@@ -239,8 +239,13 @@ citation-audit/
 |   |-- semantic_verifier.py        Phase 2+: Semantic verification
 |   |-- metadata_verifier.py        Phase 3: Metadata + retraction
 |   |-- rubric.py                   Multi-dimensional rubric scoring
+|   |-- coding_audit.py             Medical coding audit CLI
+|   |-- generate_figures.py         Visualization generation
 |
 |-- src/                      Installable Python package
+|   |-- cli.py                      Command-line interface
+|   |-- verify.py                   Core verification logic
+|   |-- coding_verifier.py          Medical coding verification
 |   |-- extractors/                 BibTeX, markdown, plaintext parsers
 |   |-- validators/                 CrossRef, DOI resolver, prefix checker
 |   |-- reporters/                  Markdown report generation
@@ -254,8 +259,13 @@ citation-audit/
 |   |-- hallucination-patterns.md   Pattern catalog with examples
 |   |-- verification-workflow.md    Decision tree for verification
 |   |-- case-studies.md             Real-world audit examples
+|   |-- doi-reference.md            DOI prefix reference guide
+|   |-- supplementary/              Additional documentation
 |
 |-- papers/                   Research manuscripts
+|   |-- PAPER.md                    Primary research paper
+|   |-- JOURNAL_PAPER.md            Journal submission draft
+|
 |-- reports/                  Audit reports
 |-- examples/                 Sample files and reports
 |-- tests/                    Test suite
