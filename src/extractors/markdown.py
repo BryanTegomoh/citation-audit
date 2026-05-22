@@ -60,6 +60,8 @@ def extract_author_year(text: str) -> tuple[Optional[str], Optional[int]]:
     match = AUTHOR_YEAR_PATTERN.search(text)
     if match:
         author = match.group('author')
+        if author:
+            author = re.sub(r'\s+(?:et\s+al\.?|and\s+.*)$', '', author, flags=re.IGNORECASE)
         year_str = match.group('year')
         year = int(year_str) if year_str else None
         return author, year

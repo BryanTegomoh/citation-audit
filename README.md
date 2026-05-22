@@ -14,6 +14,8 @@ This toolkit implements a five-phase verification pipeline with 56 documented fa
 
 It can also audit AI-generated medical coding output by checking whether suggested E/M, CPT, and ICD-10 codes are supported by the clinical transcript and structured documentation.
 
+For product teams building cited clinical AI, start with the [Clinical Evidence Grounding Framework](docs/clinical-evidence-grounding-framework.md). It turns citation accuracy into a release-ready evaluation layer: structural verification, claim-level support labels, clinical severity, and a compact JSONL eval format.
+
 ---
 
 ## The Five-Phase Pipeline
@@ -144,6 +146,9 @@ python scripts/semantic_verifier.py content_verification.json -o semantic_report
 
 # Audit AI-generated medical coding for a sample visit transcript
 python scripts/coding_audit.py examples/coding_sample.json
+
+# Summarize claim-level grounding demo cases
+python scripts/evaluate_claim_grounding.py examples/claim_grounding_cases.jsonl
 ```
 
 ---

@@ -37,3 +37,12 @@ README_files/
 
 # Run outputs
 scripts/safety_report.*
+
+# Personal outreach drafts and brief (not for public repo)
+reports/openevidence-citation-audit-brief.md
+reports/openevidence-citation-audit-brief.html
+reports/openevidence-citation-audit-brief.pdf
+reports/email-engineering.md
+reports/email-travis-linkedin.md
+reports/email-zach-linkedin.md
+reports/generate_pdf.py

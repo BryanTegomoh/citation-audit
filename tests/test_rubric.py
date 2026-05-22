@@ -55,7 +55,20 @@ class FakeContentResult:
     @property
     def alignment_status(self):
         from content_verifier import AlignmentStatus
-        return AlignmentStatus(self._alignment)
+        mapping = {
+            "aligned": AlignmentStatus.ALIGNED,
+            "mismatch": AlignmentStatus.MISMATCH,
+            "partial_match": AlignmentStatus.PARTIAL_MATCH,
+            "wrong_paper": AlignmentStatus.WRONG_PAPER,
+            "supported": AlignmentStatus.SUPPORTED,
+            "partially_supported": AlignmentStatus.PARTIALLY_SUPPORTED,
+            "unsupported": AlignmentStatus.UNSUPPORTED,
+            "uncertain": AlignmentStatus.UNCERTAIN,
+        }
+        val = self._alignment
+        if val in mapping:
+            return mapping[val]
+        return AlignmentStatus(val)
 
 
 class FakeMetadataDiscrepancy:
