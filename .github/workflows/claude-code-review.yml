@@ -1,0 +1,43 @@
+name: Claude Code
+
+on:
+  # Auto-review whenever a PR is opened or updated
+  pull_request:
+    types: [opened, synchronize]
+  # On-demand: respond to @claude mentions in issues and PR comments
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+
+jobs:
+  claude:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # On pull_request events, run an automatic code review.
+          # On comment/issue events, the action auto-detects the @claude
+          # mention and responds interactively.
+          prompt: |
+            ${{ (github.event_name == 'pull_request') && format('/code-review:code-review {0}/pull/{1}', github.repository, github.event.pull_request.number) || '' }}
+          plugin_marketplaces: |
+            https://github.com/anthropics/claude-code.git
+          plugins: |
+            code-review@claude-code-plugins
+          claude_args: |
+            --max-turns 15
