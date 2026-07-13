@@ -1,9 +1,12 @@
 name: Claude Code
 
 on:
-  # Auto-review whenever a PR is opened or updated
+  # Auto-review whenever a PR is opened or updated (before merge)
   pull_request:
     types: [opened, synchronize]
+  # Review commits pushed directly to main (after they land)
+  push:
+    branches: [main]
   # On-demand: respond to @claude mentions in issues and PR comments
   issue_comment:
     types: [created]
@@ -30,14 +33,19 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # On pull_request events, run an automatic code review.
-          # On comment/issue events, the action auto-detects the @claude
-          # mention and responds interactively.
+          # PR events  -> run the code-review plugin on the PR (before merge).
+          # push to main -> review the commit(s) that just landed.
+          # comment/issue events -> auto-detected @claude interactive mode.
           prompt: |
             ${{ (github.event_name == 'pull_request') && format('/code-review:code-review {0}/pull/{1}', github.repository, github.event.pull_request.number) || '' }}
+            ${{ (github.event_name == 'push') && format('Review the changes in commit {0} pushed to the {1} branch of {2}. Summarize what changed, flag any bugs, security issues, or risky changes, and clearly state whether it looks good to merge/ship or needs changes. Post your review as a comment on the commit.', github.sha, github.ref_name, github.repository) || '' }}
           plugin_marketplaces: |
             https://github.com/anthropics/claude-code.git
           plugins: |
             code-review@claude-code-plugins
+          # Default model: Sonnet 4.6 (balanced). For a deep pass, comment
+          # "@claude review this with Opus" on a PR/commit and Claude will
+          # use Opus for that run.
           claude_args: |
+            --model claude-sonnet-4-6
             --max-turns 15
