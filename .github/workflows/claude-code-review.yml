@@ -4,9 +4,6 @@ on:
   # Auto-review whenever a PR is opened or updated (before merge)
   pull_request:
     types: [opened, synchronize]
-  # Review commits pushed directly to main (after they land)
-  push:
-    branches: [main]
   # On-demand: respond to @claude mentions in issues and PR comments
   issue_comment:
     types: [created]
@@ -25,7 +22,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -33,12 +30,10 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # PR events  -> run the code-review plugin on the PR (before merge).
-          # push to main -> review the commit(s) that just landed.
+          # PR events -> run the code-review plugin on the PR (before merge).
           # comment/issue events -> auto-detected @claude interactive mode.
           prompt: |
             ${{ (github.event_name == 'pull_request') && format('/code-review:code-review {0}/pull/{1}', github.repository, github.event.pull_request.number) || '' }}
-            ${{ (github.event_name == 'push') && format('Review the changes in commit {0} pushed to the {1} branch of {2}. Summarize what changed, flag any bugs, security issues, or risky changes, and clearly state whether it looks good to merge/ship or needs changes. Post your review as a comment on the commit.', github.sha, github.ref_name, github.repository) || '' }}
           plugin_marketplaces: |
             https://github.com/anthropics/claude-code.git
           plugins: |
