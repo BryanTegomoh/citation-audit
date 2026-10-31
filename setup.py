@@ -6,11 +6,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 with open("requirements.txt", "r", encoding="utf-8") as fh:
-    requirements = [
-        line.strip()
-        for line in fh
-        if line.strip() and not line.startswith("#")
-    ]
+    # Runtime deps only: stop at the development section.
+    requirements = []
+    for line in fh:
+        if "Development dependencies" in line:
+            break
+        line = line.strip()
+        if line and not line.startswith("#"):
+            requirements.append(line)
 
 setup(
     name="citation-audit",
@@ -20,8 +23,10 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/BryanTegomoh/citation-audit",
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
+    # src/ is the citation_toolkit package (it uses relative imports).
+    packages=["citation_toolkit"]
+    + ["citation_toolkit." + p for p in find_packages(where="src")],
+    package_dir={"citation_toolkit": "src"},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",

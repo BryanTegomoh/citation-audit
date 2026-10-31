@@ -77,6 +77,35 @@ class TestDOIResolver:
         assert result.status_code == 404
 
 
+    def test_bot_blocking_publisher_doi_exists(self):
+        """Regression: NEJM returns 403 to bots; the DOI is still real.
+
+        Polack et al. 2020 (BNT162b2 trial) must not be flagged fabricated.
+        """
+        result = check_doi_exists("10.1056/NEJMoa2034577")
+        assert result.exists is True
+        assert result.redirect_url and "nejm.org" in result.redirect_url
+
+    def test_accepts_url_and_doi_prefix(self):
+        assert check_doi_exists("https://doi.org/10.1038/nature21056").exists
+        assert check_doi_exists("doi:10.1038/nature21056").exists
+
+    def test_registry_error_is_not_fabricated(self, monkeypatch):
+        """A 5xx from the registry is unknown, never a 404 'fabricated'."""
+        import src.validators.doi_resolver as dr
+
+        class Resp:
+            status_code = 503
+            def json(self):
+                raise ValueError
+
+        monkeypatch.setattr(dr.requests, "get", lambda *a, **k: Resp())
+        result = dr.check_doi_exists("10.1038/nature21056")
+        assert result.exists is False
+        assert result.status_code == 503
+        assert result.error
+
+
 class TestCrossRefAPI:
     """Test CrossRef metadata retrieval."""
 
