@@ -129,3 +129,25 @@ class TestCrossRefAPI:
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
+
+
+class TestPipelineDOIValidator:
+    """Phase 0 must not call registered non-Crossref DOIs fabricated."""
+
+    def test_datacite_doi_is_not_fabricated(self):
+        import asyncio, os, sys
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
+        from doi_validator import DOIValidator, DOIStatus
+
+        v = DOIValidator()
+        # A Zenodo (DataCite) DOI that Crossref does not hold.
+        res = asyncio.run(v.validate_doi("10.5281/zenodo.3233853"))
+        assert res.status == DOIStatus.EXISTS
+
+    def test_fake_doi_still_fabricated(self):
+        import asyncio, os, sys
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
+        from doi_validator import DOIValidator, DOIStatus
+
+        res = asyncio.run(DOIValidator().validate_doi("10.9999/fake.doi.12345"))
+        assert res.status == DOIStatus.FABRICATED

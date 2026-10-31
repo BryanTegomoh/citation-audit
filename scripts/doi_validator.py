@@ -227,6 +227,24 @@ class DOIValidator:
                         )
 
                     elif response.status == 404:
+                        # Not in Crossref. Before calling it fabricated, ask the DOI
+                        # registry itself: DataCite (Zenodo, Dryad, figshare), mEDRA
+                        # and others register real DOIs Crossref does not hold.
+                        handle_url = f"https://doi.org/api/handles/{doi}"
+                        try:
+                            async with session.get(handle_url, params={"type": "URL"}) as h:
+                                hdata = await h.json(content_type=None)
+                        except Exception:
+                            hdata = {}
+                        if hdata.get("responseCode") == 1:
+                            return DOIValidationResult(
+                                original_url=url,
+                                extracted_doi=doi,
+                                status=DOIStatus.EXISTS,
+                                publisher=self.get_expected_publisher(doi),
+                                error_message="Registered outside Crossref (e.g. DataCite); metadata not checked",
+                                response_time_ms=response_time
+                            )
                         # DOI does not exist - this is the key finding
                         return DOIValidationResult(
                             original_url=url,
